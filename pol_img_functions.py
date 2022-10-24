@@ -13,7 +13,8 @@ import matplotlib.pyplot as plt
 #     print("size from "+str(init_size) +"to"+str(img_down_samp.shape))
 #     return img_down_samp
 
-def img_masking_func(src,num, sample_size,plot= False,random_color = False):
+
+def img_masking_func(src, num, sample_size, plot=False, random_color=False):
     img_mask = np.zeros(src.shape, dtype="uint8")
     img_mask_vis = np.zeros(src.shape, dtype="uint8")
     rows, cols = map(int, (src.shape[0], src.shape[1]))
@@ -34,10 +35,24 @@ def img_masking_func(src,num, sample_size,plot= False,random_color = False):
     #     plt.show()
     return img_mask, img_mask_vis
 
+
+def circular_index(src, radius, num):
+    # takes an image input and returns list of x,y coordinates arranged in a circular fashion
+    centre = [src.shape[0], src.shape[1]]
+    angs = np.linspace(0, 2 * np.pi - 2 * np.pi / num, num)
+    x = np.zeros(num, dtype=int)
+    y = np.zeros(num, dtype=int)
+
+    for theta in range(num):
+        x[theta] = centre[0] + np.floor(radius * np.cos(angs[theta])) - num
+        y[theta] = centre[1] + np.floor(radius * np.sin(angs[theta])) - num
+    print(x, y)
+    return x, y
 # def img_resize_func(mask,num,sample_size):
 #     thresh_vals = mask[mask!=[0,0,0]]
 #     img_resize = thresh_vals.reshape(sample_size * num, sample_size * num,3)
 #     return img_resize
+
 
 def sub_sampling_func(src, num, sample_size):
     if sample_size == 0:
@@ -55,6 +70,7 @@ def sub_sampling_func(src, num, sample_size):
     print(subsample_img.shape, remap_img.shape)
     return subsample_img, remap_img
 
+
 def implot_func(imlist,title_list,suptitle = None,save= False):
     subplot_idx = str("1"+str(len(imlist)))
     for i in range(len(imlist)):
@@ -65,6 +81,7 @@ def implot_func(imlist,title_list,suptitle = None,save= False):
         plt.suptitle(suptitle)
     plt.show()
 
+
 scale_factor = .1
 img_bgr = cv2.imread("/Users/athil/Downloads/sample_img.jpg")
 rows, cols, channel = map(int, img_bgr.shape)
@@ -74,7 +91,7 @@ img_gray = cv2.cvtColor(img_bgr_down_samp, cv2.COLOR_BGR2GRAY)
 
 num = 10
 sample_size = 0
-img_size = 100
+img_size = 20
 rand_img = np.random.randint(0, 255, (img_size, img_size, 3),dtype="uint8")
 img_mask, img_mask_vis = img_masking_func(rand_img, num, sample_size, random_color=True)
 
@@ -105,6 +122,11 @@ pwd = os.getcwd()
 # implot_func([rand_img, composite_img, sub_sample], ["sample img","mask", "sub sampled"], "Subsampling")   ###
 
 dict_omm_rho = {"ant": 5.4, "honey bee": 14, "cricket": 35}
+white = [255, 255, 255]
+red = [255, 0, 0]
+green = [0, 255, 0]
+blue = [0, 0, 255]
+black = [0, 0, 0]
 
 img_holder = [None] * len(dict_omm_rho)
 dict_omm_rho = {"ant": 5.4, "honey bee": 14, "cricket": 35}
@@ -125,10 +147,21 @@ for aoi, i in zip(dict_omm_rho.keys(), range(len(dict_omm_rho))):
     img_holder[i] = cv2.GaussianBlur(rand_img, (kernel_size, kernel_size), SIGMA[i])
 
 
-plt_images = img_holder.insert(rand_img, 0)
+plt_images = img_holder
+plt_images.insert(0, rand_img)
 img_legends = list(dict_omm_rho)
-img_legends.insert("original", 0)
-implot_func(plt_images, img_legends)
+img_legends.insert(0, "original")
+# implot_func(plt_images, img_legends)    ####
+
+x, y = circular_index(rand_img, 8, 10)
+print(len(x))
+rand_img[(x, y)] = black
+
+plt.imshow(rand_img, cmap=plt.cm.get_cmap("gray"), vmax=255, vmin=0)
+plt.gray()
+plt.colorbar()
+plt.show()
+
 # plt.subplot(121)
 # plt.title("mask")
 # plt.imshow(img_mask_vis)
