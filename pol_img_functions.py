@@ -54,6 +54,21 @@ def circular_index(src, radius, num):
 #     return img_resize
 
 
+def curve_indexing(src, radius, num, centre=None, outer_angle=360, inner_angle=0, degrees=True):
+    if centre is None:
+        centre = [src.shape[0], src.shape[1]]
+    if degrees is True:
+        outer_angle = np.deg2rad(outer_angle)
+        inner_angle = np.deg2rad(inner_angle)
+
+    angs = np.linspace(inner_angle, outer_angle - 2*np.pi / num, num)
+    x = centre[0] + np.floor(radius * np.cos(angs)) - num
+    y = centre[1] + np.floor(radius * np.sin(angs)) - num
+    x = np.array(x, dtype=int)
+    y = np.array(y, dtype=int)
+    return x, y
+
+
 def sub_sampling_func(src, num, sample_size):
     if sample_size == 0:
         remap_img = np.zeros((num, num, 3))
@@ -91,8 +106,9 @@ img_gray = cv2.cvtColor(img_bgr_down_samp, cv2.COLOR_BGR2GRAY)
 
 num = 10
 sample_size = 0
-img_size = 20
+img_size = 30
 rand_img = np.random.randint(0, 255, (img_size, img_size, 3),dtype="uint8")
+blank_img = np.zeros((img_size, img_size, 3), dtype="uint8")
 img_mask, img_mask_vis = img_masking_func(rand_img, num, sample_size, random_color=True)
 
 # img_resize = img_resize_func(img_mask_vis, num, sample_size)
@@ -129,7 +145,7 @@ blue = [0, 0, 255]
 black = [0, 0, 0]
 
 img_holder = [None] * len(dict_omm_rho)
-dict_omm_rho = {"ant": 5.4, "honey bee": 14, "cricket": 35}
+
 
 known_angle =1 #2*np.rad2deg(np.arctan(4.5/71))
 conversion_pix_per_angle = 1  #384/known_angle
@@ -153,15 +169,19 @@ img_legends = list(dict_omm_rho)
 img_legends.insert(0, "original")
 # implot_func(plt_images, img_legends)    ####
 
-x, y = circular_index(rand_img, 8, 10)
-print(len(x))
-rand_img[(x, y)] = black
-
-plt.imshow(rand_img, cmap=plt.cm.get_cmap("gray"), vmax=255, vmin=0)
-plt.gray()
-plt.colorbar()
+# x, y = circular_index(rand_img, 8, 10)
+# print(len(x))
+# rand_img[(x, y)] = black
+#
+# plt.imshow(rand_img, cmap=plt.cm.get_cmap("gray"), vmax=255, vmin=0)
+# plt.show()
+centre = [blank_img.shape[0]/2, blank_img.shape[1]/2]
+#centre = [0, 0]
+x, y = curve_indexing(blank_img, radius=10, num=50, outer_angle=360, inner_angle=90)
+col_list = np.array([red, green, blue])
+blank_img[(x, y)] = col_list[np.random.randint(col_list.shape[0])]
+plt.imshow(blank_img)
 plt.show()
-
 # plt.subplot(121)
 # plt.title("mask")
 # plt.imshow(img_mask_vis)
