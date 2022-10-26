@@ -38,14 +38,14 @@ def img_masking_func(src, num, sample_size, plot=False, random_color=False):
 
 def circular_index(src, radius, num):
     # takes an image input and returns list of x,y coordinates arranged in a circular fashion
-    centre = [src.shape[0], src.shape[1]]
+    centre = [int(src.shape[0]/2), int(src.shape[1]/2)]
     angs = np.linspace(0, 2 * np.pi - 2 * np.pi / num, num)
     x = np.zeros(num, dtype=int)
     y = np.zeros(num, dtype=int)
 
     for theta in range(num):
-        x[theta] = centre[0] + np.floor(radius * np.cos(angs[theta])) - num
-        y[theta] = centre[1] + np.floor(radius * np.sin(angs[theta])) - num
+        x[theta] = centre[0] + np.floor(radius * np.cos(angs[theta]))
+        y[theta] = centre[1] + np.floor(radius * np.sin(angs[theta]))
     print(x, y)
     return x, y
 # def img_resize_func(mask,num,sample_size):
@@ -56,14 +56,14 @@ def circular_index(src, radius, num):
 
 def curve_indexing(src, radius, num, centre=None, outer_angle=360, inner_angle=0, degrees=True):
     if centre is None:
-        centre = [src.shape[0], src.shape[1]]
+        centre = [int(src.shape[0]/2), int(src.shape[1]/2)]
     if degrees is True:
         outer_angle = np.deg2rad(outer_angle)
         inner_angle = np.deg2rad(inner_angle)
 
     angs = np.linspace(inner_angle, outer_angle - 2*np.pi / num, num)
-    x = centre[0] + np.floor(radius * np.cos(angs)) - num
-    y = centre[1] + np.floor(radius * np.sin(angs)) - num
+    x = centre[0] + np.floor(radius * np.cos(angs))
+    y = centre[1] + np.floor(radius * np.sin(angs))
     x = np.array(x, dtype=int)
     y = np.array(y, dtype=int)
     return x, y
@@ -175,12 +175,15 @@ img_legends.insert(0, "original")
 #
 # plt.imshow(rand_img, cmap=plt.cm.get_cmap("gray"), vmax=255, vmin=0)
 # plt.show()
-centre = [blank_img.shape[0]/2, blank_img.shape[1]/2]
+centre = [blank_img.shape[0], blank_img.shape[1]]
 #centre = [0, 0]
-x, y = curve_indexing(blank_img, radius=10, num=50, outer_angle=360, inner_angle=90)
+x, y = curve_indexing(blank_img, radius=10, num=50, outer_angle=360, inner_angle=0)
 col_list = np.array([red, green, blue])
 blank_img[(x, y)] = col_list[np.random.randint(col_list.shape[0])]
 plt.imshow(blank_img)
+# plt.scatter(x, y)
+# plt.xlim([0, blank_img.shape[0]])
+# plt.ylim([0, blank_img.shape[1]])
 plt.show()
 # plt.subplot(121)
 # plt.title("mask")
