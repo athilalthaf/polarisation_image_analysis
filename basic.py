@@ -75,7 +75,6 @@ for j in range(len(hist_dat)):
     plt.pause(0.0001)
 plt.show()
 
-
 # img_sample_dirac = np.zeros((1001, 1001))
 # img_sample_dirac[500,500] = 1
 # img_sample_gauss = cv2.GaussianBlur(img_sample_dirac,(kernel_size,kernel_size),max(SIGMA))
