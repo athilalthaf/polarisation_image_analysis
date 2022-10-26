@@ -142,20 +142,19 @@ def build_right_bee_eye():
             j += 1
 
     ommatidia = np.array(ommatidia)
-    omm_ori = R.from_euler('ZY', ommatidia)
+    ommatidia = ommatidia[ommatidia[:,1] > np.pi/3]
+    omm_ori = R.from_euler('XY', ommatidia)
     omm_rho = np.deg2rad(5) * (1 + ((np.pi/2 - ommatidia[:, 1]) % (2 * np.pi)) / np.pi)
     omm_pol = np.asarray(ommatidia[:, 1] > np.pi/3, dtype=float)
     spectral = (omm_pol[..., np.newaxis] * np.array([[0, 0, 0, 0, 1]], dtype=float) +
                 (1 - omm_pol)[..., np.newaxis] * np.array([[0, 0, 1, 0, 0]], dtype=float))
 
-    return omm_ori, omm_rho, omm_pol, spectral
-
+    return omm_ori, omm_rho, omm_pol, spectral, ommatidia
 
 def main(*args):
-    r_eye_ori, r_eye_rho, r_eye_pol, r_eye_spectral = build_right_bee_eye()
+    r_eye_ori, r_eye_rho, r_eye_pol, r_eye_spectral, ommatidia = build_right_bee_eye()
     print(r_eye_ori)
-
-
+    omm_pol = ommatidia[ommatidia[:,1] > np.pi/3]
 
     import matplotlib.pyplot as plt
 
@@ -164,7 +163,7 @@ def main(*args):
     rgb[:, [0, 2]] += hue[..., 4:5] / 2
     rgb[:, 0] += hue[..., 0]
     plt.subplot(111, polar=False)
-    yaw, pitch, raw = r_eye_ori.as_euler('ZYX', degrees=True).T
+    yaw, pitch, raw = r_eye_ori.as_euler('YXZ', degrees=True).T
     plt.scatter(yaw, pitch, s=20, c=np.clip(rgb, 0, 1))
     plt.xlim([-180, 180])
     plt.ylim([-90, 90])
