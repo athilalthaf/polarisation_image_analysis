@@ -68,7 +68,6 @@ def curve_indexing(src, radius, num, centre=None, outer_angle=360, inner_angle=0
     y = np.array(y, dtype=int)
     return x, y
 
-
 def sub_sampling_func(src, num, sample_size):
     if sample_size == 0:
         remap_img = np.zeros((num, num, 3))
@@ -100,7 +99,7 @@ def implot_func(imlist,title_list,suptitle = None,save= False):
 scale_factor = .1
 img_bgr = cv2.imread("/Users/athil/Downloads/sample_img.jpg")
 rows, cols, channel = map(int, img_bgr.shape)
-img_bgr_down_samp  = cv2.pyrDown(img_bgr, dstsize = (cols // 2, rows // 2))
+img_bgr_down_samp = cv2.pyrDown(img_bgr, dstsize = (cols // 2, rows // 2))
 img_rgb = img_bgr_down_samp[:, :, [2, 1, 0]]
 img_gray = cv2.cvtColor(img_bgr_down_samp, cv2.COLOR_BGR2GRAY)
 
@@ -180,6 +179,17 @@ centre = [blank_img.shape[0], blank_img.shape[1]]
 x, y = curve_indexing(blank_img, radius=10, num=50, outer_angle=360, inner_angle=0)
 col_list = np.array([red, green, blue])
 blank_img[(x, y)] = col_list[np.random.randint(col_list.shape[0])]
+trail_x = int(np.ceil(np.sqrt(len(x)))) - len(x)
+trail_y = int(np.ceil(np.sqrt(len(y)))) - len(y)
+
+# img_remaped = blank_img([x,y])
+# np.reshape(img_remaped,(int(np.floor(img_remaped.shape[0])),int(np.floor(img_remaped.shape[0]))))
+RAD = np.arange(5,10,2)
+X, Y = [None]*len(RAD), [None]*len(RAD)
+for radius,i in enumerate(RAD):
+    x,y = curve_indexing(blank_img, radius=radius, num=10)
+    X[i]= x
+    print(X)
 plt.imshow(blank_img)
 # plt.scatter(x, y)
 # plt.xlim([0, blank_img.shape[0]])
