@@ -143,7 +143,7 @@ def build_right_bee_eye():
 
     ommatidia = np.array(ommatidia)
     ommatidia = ommatidia[ommatidia[:, 1] > np.pi/3]
-    omm_ori = R.from_euler('ZY', ommatidia)
+    omm_ori = R.from_euler('YZ', ommatidia)
     omm_rho = np.deg2rad(5) * (1 + ((np.pi/2 - ommatidia[:, 1]) % (2 * np.pi)) / np.pi)
     omm_pol = np.asarray(ommatidia[:, 1] > np.pi/3, dtype=float)
     spectral = (omm_pol[..., np.newaxis] * np.array([[0, 0, 0, 0, 1]], dtype=float) +
@@ -164,7 +164,8 @@ def main(*args):
     rgb[:, 0] += hue[..., 0]
     plt.subplot(111, polar=False)
     yaw, pitch, raw = r_eye_ori.as_euler('ZYX', degrees=True).T
-    plt.scatter( yaw, pitch, s=20, c=np.clip(rgb, 0, 1))
+    plt.scatter( yaw-90, pitch, s=20, c=np.clip(rgb, 0, 1))
+    print(yaw)
     # plt.xlim([-180, 180])
     # plt.ylim([-90, 90])
     plt.show()
@@ -172,5 +173,4 @@ def main(*args):
 
 if __name__ == '__main__':
     import sys
-
     main(*sys.argv)
