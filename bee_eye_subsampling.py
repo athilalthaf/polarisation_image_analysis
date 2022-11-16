@@ -1,6 +1,6 @@
 from scipy.interpolate import splev, splrep
 from scipy.spatial.transform import Rotation as R
-
+import cv2
 import numpy as np
 # from pol_img_functions import blank_img
 alpha_max_1_2 = np.deg2rad(np.array([
@@ -151,26 +151,32 @@ def build_right_bee_eye():
 
     return omm_ori, omm_rho, omm_pol, spectral, ommatidia
 
-def main(*args):
-    r_eye_ori, r_eye_rho, r_eye_pol, r_eye_spectral, ommatidia = build_right_bee_eye()
-    print(r_eye_ori)
-    omm_pol = ommatidia[ommatidia[:, 1] > np.pi/3]
+r_eye_ori, r_eye_rho, r_eye_pol, r_eye_spectral, ommatidia = build_right_bee_eye()
+print(r_eye_ori)
+omm_pol = ommatidia[ommatidia[:, 1] > np.pi / 3]
 
-    import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 
-    hue = r_eye_spectral
-    rgb = hue[..., 1:4]
-    rgb[:, [0, 2]] += hue[..., 4:5] / 2
-    rgb[:, 0] += hue[..., 0]
-    plt.subplot(111, polar=False)
-    yaw, pitch, raw = r_eye_ori.as_euler('ZYX', degrees=True).T
-    plt.scatter( yaw-90, pitch, s=20, c=np.clip(rgb, 0, 1))
-    print(yaw)
-    # plt.xlim([-180, 180])
-    # plt.ylim([-90, 90])
-    plt.show()
-    plt.plot()
+hue = r_eye_spectral
+rgb = hue[..., 1:4]
+rgb[:, [0, 2]] += hue[..., 4:5] / 2
+rgb[:, 0] += hue[..., 0]
+plt.subplot(111, polar=False)
+yaw, pitch, raw = r_eye_ori.as_euler('ZYX', degrees=True).T
+yaw_norm = (yaw - yaw.min()) / np.max(yaw - yaw.min())
+pitch_norm = (pitch - pitch.min()) / np.max(pitch - pitch.min())
+plt.scatter(yaw_norm, pitch_norm, s=20, c=np.clip(rgb, 0, 1))
 
-if __name__ == '__main__':
-    import sys
-    main(*sys.argv)
+# plt.xlim([-180, 180])
+# plt.ylim([-90, 90])
+plt.show()
+plt.plot()
+
+test_img = cv2.imread("test_img.png")
+print(test_img)
+yaw_img_cord = np.array(yaw_norm * (test_img.shape[0]- 1), dtype="int")
+pitch_img_cord = np.array(pitch_norm * (test_img.shape[1] - 1), dtype="int")
+test_img[(yaw_img_cord, pitch_img_cord)] = [255,0,0]
+plt.imshow(test_img)
+plt.scatter(yaw_img_cord,pitch_img_cord)
+## change the image into polar notations makes it easier to convert yaw and pitch
