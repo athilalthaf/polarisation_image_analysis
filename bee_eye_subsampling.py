@@ -2,7 +2,7 @@ from scipy.interpolate import splev, splrep
 from scipy.spatial.transform import Rotation as R
 import cv2
 import numpy as np
-# from pol_img_functions import blank_img
+from pol_img_functions import implot_func
 alpha_max_1_2 = np.deg2rad(np.array([
     [
         -74.5, -69.7, -60.2, -50.2, -40.2, -30.3, -20.3, -10.2, 0.0,
@@ -161,22 +161,113 @@ hue = r_eye_spectral
 rgb = hue[..., 1:4]
 rgb[:, [0, 2]] += hue[..., 4:5] / 2
 rgb[:, 0] += hue[..., 0]
-plt.subplot(111, polar=False)
+# plt.subplot(111, polar=False)
 yaw, pitch, raw = r_eye_ori.as_euler('ZYX', degrees=True).T
 yaw_norm = (yaw - yaw.min()) / np.max(yaw - yaw.min())
 pitch_norm = (pitch - pitch.min()) / np.max(pitch - pitch.min())
-plt.scatter(yaw_norm, pitch_norm, s=20, c=np.clip(rgb, 0, 1))
+# plt.scatter(yaw_norm, pitch_norm, s=20, c=np.clip(rgb, 0, 1))
+#
+# # plt.xlim([-180, 180])
+# # plt.ylim([-90, 90])
+# plt.show()
 
-# plt.xlim([-180, 180])
-# plt.ylim([-90, 90])
-plt.show()
-plt.plot()
 
 test_img = cv2.imread("test_img.png")
-print(test_img)
 yaw_img_cord = np.array(yaw_norm * (test_img.shape[0]- 1), dtype="int")
 pitch_img_cord = np.array(pitch_norm * (test_img.shape[1] - 1), dtype="int")
-test_img[(yaw_img_cord, pitch_img_cord)] = [255,0,0]
-plt.imshow(test_img)
-plt.scatter(yaw_img_cord,pitch_img_cord)
-## change the image into polar notations makes it easier to convert yaw and pitch
+
+
+# test_img_vis = test_img
+# test_img_vis[(yaw_img_cord, pitch_img_cord)] = [255, 0, 0]
+# plt.imshow(test_img_vis)
+# plt.scatter(yaw_img_cord,pitch_img_cord)
+# # plt.xlim([0,test_img.shape[0]])
+# # plt.ylim([test_img.shape[1], 0])
+# plt.show()
+
+
+#simplifyingh the image into a matirx to perform convolution
+dist_array = np.zeros((yaw_img_cord.shape))
+yaw_pitch = np.vstack([yaw_img_cord,pitch_img_cord]).T
+
+for i in range(yaw_img_cord.shape[0]):
+    dist_array[i] = np.linalg.norm(np.linalg.norm(yaw_pitch[i,:] - np.array([0,0])))
+
+sort_idx = np.argsort(dist_array)
+
+yaw_pitch_sort = yaw_pitch[sort_idx, :]
+
+# yaw_pitch_resize = np.zeros((200,200,3))
+# yaw_pitch_resize[0,0] = test_img[yaw_pitch_sort[0, :]]
+# for i in range(yaw_pitch_resize.shape[0]):
+#     for j in range(yaw_pitch_resize.shape[1]):
+#             yaw_
+
+
+nan_img = np.empty(test_img.shape)
+nan_img[:] = np.nan
+nan_img[(yaw_img_cord, pitch_img_cord)] = test_img[(yaw_img_cord, pitch_img_cord)]
+##########
+dict_omm_rho = {"ant": 5.4, "honey bee": 14, "cricket": 35}
+white = [255, 255, 255]
+red = [255, 0, 0]
+green = [0, 255, 0]
+blue = [0, 0, 255]
+black = [0, 0, 0]
+
+img_holder = [None] * len(dict_omm_rho)
+
+
+known_angle =1 #2*np.rad2deg(np.arctan(4.5/71))
+conversion_pix_per_angle = 1  #384/known_angle
+# sigma = fwhm/2.355
+sig_fwhm_factor = 2.355
+dict_data = np.array([i for i in dict_omm_rho.values()])
+SIGMA = dict_data / sig_fwhm_factor * conversion_pix_per_angle
+
+kernel_size = int(4 * max(SIGMA))
+if kernel_size % 2 == 0:
+    kernel_size += 1
+
+# for aoi, i in zip(dict_omm_rho.keys(), range(len(dict_omm_rho))):
+#     print(aoi, dict_omm_rho[aoi])
+#     img_holder[i] = cv2.GaussianBlur(nan_img, (kernel_size, kernel_size), SIGMA[i])
+
+
+plt_images = img_holder
+#######
+nan_img_zero = nan_img.copy()
+nan_img_zero[np.isnan(nan_img)] = 0
+nan_img_zero_blurr = cv2.GaussianBlur(nan_img_zero, (kernel_size, kernel_size), SIGMA[0])
+
+nan_img_one = 0 * nan_img_zero.copy() + 1
+nan_img_one[np.isnan(nan_img)] = 0
+nan_img_one_blurr = cv2.GaussianBlur(nan_img_one, (kernel_size, kernel_size), SIGMA[0])
+
+NAN_img_blurr = nan_img_zero_blurr/nan_img_one_blurr
+
+# plt.imshow(nan_img)
+# plt.show()
+
+# fig1, ax1 = plt.subplots(dpi=120, constrained_layout=True)
+# ax1.imshow(nan_img, cmap="inferno")
+# plt.title("DRA pattern")
+# plt.show()
+#
+# fig2 = implot_func(img_holder,list(dict_omm_rho))
+index = [-2,-2]
+idx = (yaw_img_cord[index[0]],pitch_img_cord[index[1]])
+
+a = np.zeros(test_img.shape)
+a[(yaw_img_cord,pitch_img_cord)] = red
+
+fig2, ax2 = plt.subplots(1,2,dpi=200)
+ax2[0].scatter(pitch_img_cord,yaw_img_cord)
+
+ax2[0].set(xlim=(0,1000),ylim=(1000,0))
+ax2[0].set_aspect("equal","box")
+ax2[1].imshow(a)
+
+ax2[1].set(xlim=(0,1000),ylim=(1000,0))
+ax2[1].set_aspect("equal", "box")
+plt.show()
