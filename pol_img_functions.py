@@ -68,6 +68,30 @@ def curve_indexing(src, radius, num, centre=None, outer_angle=360, inner_angle=0
     y = np.array(y, dtype=int)
     return x, y
 
+def cart_2_pol(src, radius, num=360, centre=None, outer_angle=360, inner_angle=0, degrees=True):
+    polar = np.zeros((radius, num,3))
+    polar[:][:] = [255,0,0]
+    if centre is None:
+        centre = [int(src.shape[0]/2), int(src.shape[1]/2)]
+    if degrees is True:
+        outer_angle = np.deg2rad(outer_angle)
+        inner_angle = np.deg2rad(inner_angle)
+
+    angs = np.linspace(0, 2 * np.pi, num)[:-1]
+    #
+    # x = np.array(x, dtype=int)
+    # y = np.array(y, dtype=int)
+    for r in range(radius):
+        for theta in angs:
+            x = centre[0] + r * np.cos(theta)
+            y = centre[1] + r * np.sin(theta)
+            polar[r][int(np.rad2deg(theta))][:] = src[int(y)][int(x)][:]
+
+
+    return polar
+
+
+
 def sub_sampling_func(src, num, sample_size):
     if sample_size == 0:
         remap_img = np.zeros((num, num, 3))
@@ -85,14 +109,19 @@ def sub_sampling_func(src, num, sample_size):
     return subsample_img, remap_img
 
 
-def implot_func(imlist,title_list,suptitle = None,save= False):
+def implot_func(imlist,title_list,suptitle = None,save= False,lim_lab_list = None ):
+    plt.subplots(constrained_layout=True)
     subplot_idx = str("1"+str(len(imlist)))
     for i in range(len(imlist)):
         plt.subplot(int(subplot_idx + str(i+1)))
         plt.imshow(imlist[i])
         plt.title(title_list[i])
+        if lim_lab_list is not None :
+            plt.xlabel(lim_lab_list[i][0])
+            plt.ylabel(lim_lab_list[i][1])
     if suptitle is not None:
         plt.suptitle(suptitle)
+
     plt.show()
 
 
@@ -188,13 +217,13 @@ RAD = np.arange(5,10,2)
 X, Y = [None]*len(RAD), [None]*len(RAD)
 for radius,i in enumerate(RAD):
     x,y = curve_indexing(blank_img, radius=radius, num=10)
-    X[i]= x
+    # X[i]= x             #?
     print(X)
-plt.imshow(blank_img)
-# plt.scatter(x, y)
-# plt.xlim([0, blank_img.shape[0]])
-# plt.ylim([0, blank_img.shape[1]])
-plt.show()
+# plt.imshow(blank_img)
+# # plt.scatter(x, y)
+# # plt.xlim([0, blank_img.shape[0]])
+# # plt.ylim([0, blank_img.shape[1]])
+# plt.show()
 # plt.subplot(121)
 # plt.title("mask")
 # plt.imshow(img_mask_vis)
@@ -202,5 +231,4 @@ plt.show()
 # plt.title("sub sampled")
 # plt.imshow(sub_sample)
 # plt.show()
-
 
