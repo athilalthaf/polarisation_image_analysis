@@ -105,7 +105,7 @@ ax4.yaxis.set_ticklabels([30, 60])
 plt.show()
 
 fig5, ax5 = plt.subplots(dpi=120, constrained_layout=True)
-plt4 = ax4.plot(gamma_mesh, lin_pol(gamma_mesh))
+plt5 = ax5.plot(gamma_mesh, lin_pol(gamma_mesh))
 plt.title("Polarisation pattern based on the scatter angle and elevation")
 # ax4.set_xticks([0, np.deg2rad(90), np.deg2rad(180), np.deg2rad(360)])
 # tick = np.arange(0,361,90)
