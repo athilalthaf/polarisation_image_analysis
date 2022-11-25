@@ -150,7 +150,7 @@ def build_right_bee_eye():
 
     ommatidia = np.array(ommatidia)
     ommatidia = ommatidia[ommatidia[:, 1] > np.pi/3]
-    omm_ori = R.from_euler('YZ', ommatidia)
+    omm_ori = R.from_euler('ZY', ommatidia)
     omm_rho = np.deg2rad(5) * (1 + ((np.pi/2 - ommatidia[:, 1]) % (2 * np.pi)) / np.pi)
     omm_pol = np.asarray(ommatidia[:, 1] > np.pi/3, dtype=float)
     spectral = (omm_pol[..., np.newaxis] * np.array([[0, 0, 0, 0, 1]], dtype=float) +
@@ -170,18 +170,32 @@ rgb[:, [0, 2]] += hue[..., 4:5] / 2
 rgb[:, 0] += hue[..., 0]
 # plt.subplot(111, polar=False)
 yaw, pitch, raw = r_eye_ori.as_euler('ZYX', degrees=True).T
-yaw_norm = (yaw - yaw.min()) / np.max(yaw - yaw.min())
-pitch_norm = (pitch - pitch.min()) / np.max(pitch - pitch.min())
-# plt.scatter(yaw_norm, pitch_norm, s=20, c=np.clip(rgb, 0, 1))
-#
-# # plt.xlim([-180, 180])
-# # plt.ylim([-90, 90])
-# plt.show()
+# yaw_norm = (yaw - yaw.min()) / np.max(yaw - yaw.min())
+# pitch_norm = (pitch - pitch.min()) / np.max(pitch - pitch.min())
+plt.figure(1)
+ax1 = plt.subplot(111,polar=False)
+
+plt.scatter(yaw, pitch, s=20, c=np.clip(rgb, 0, 1))
+plt.ylabel("elevation [deg]")
+plt.xlabel("azimuth [deg]")
+plt.title("DRA co-ordinates")
+plt.xlim([-180, 180])
+plt.ylim([0, 90])
+plt.xticks(np.arange(-180,181,45))
+plt.yticks(np.arange(0,91,30))
+plt.tight_layout()
+# plt.yticks([0 , int(radius/3), int(radius*2/3), radius ])
+# ax7.set_yticklabels(np.arange(0,91,30)[::-1])
+
+# ax7.set_xticklabels(np.arange(-180,181,45))
+
+plt.show()
+plt.show()
 
 
 test_img = cv2.imread("test_img.png")
-yaw_img_cord = np.array(yaw_norm * (test_img.shape[0]- 1), dtype="int")
-pitch_img_cord = np.array(pitch_norm * (test_img.shape[1] - 1), dtype="int")
+# yaw_img_cord = np.array(yaw_norm * (test_img.shape[0]- 1), dtype="int")
+# pitch_img_cord = np.array(pitch_norm * (test_img.shape[1] - 1), dtype="int")
 
 
 test_img_vis = test_img
@@ -194,15 +208,15 @@ test_img_vis = test_img
 
 
 #simplifyingh the image into a matirx to perform convolution
-dist_array = np.zeros((yaw_img_cord.shape))
-yaw_pitch = np.vstack([yaw_img_cord, pitch_img_cord]).T
-
-for i in range(yaw_img_cord.shape[0]):
-    dist_array[i] = np.linalg.norm(np.linalg.norm(yaw_pitch[i,:] - np.array([0,0])))
-
-sort_idx = np.argsort(dist_array)
-
-yaw_pitch_sort = yaw_pitch[sort_idx, :]
+# dist_array = np.zeros((yaw_img_cord.shape))
+# yaw_pitch = np.vstack([yaw_img_cord, pitch_img_cord]).T
+#
+# for i in range(yaw_img_cord.shape[0]):
+#     dist_array[i] = np.linalg.norm(np.linalg.norm(yaw_pitch[i,:] - np.array([0,0])))
+#
+# sort_idx = np.argsort(dist_array)
+#
+# yaw_pitch_sort = yaw_pitch[sort_idx, :]
 
 # yaw_pitch_resize = np.zeros((200,200,3))
 # yaw_pitch_resize[0,0] = test_img[yaw_pitch_sort[0, :]]
@@ -211,9 +225,9 @@ yaw_pitch_sort = yaw_pitch[sort_idx, :]
 #             yaw_
 
 
-nan_img = np.empty(test_img.shape)
-nan_img[:] = np.nan
-nan_img[(yaw_img_cord, pitch_img_cord)] = test_img[(yaw_img_cord, pitch_img_cord)]
+# nan_img = np.empty(test_img.shape)
+# nan_img[:] = np.nan
+# nan_img[(yaw_img_cord, pitch_img_cord)] = test_img[(yaw_img_cord, pitch_img_cord)]
 ##########
 dict_omm_rho = {"ant": 5.4, "honey bee": 14, "cricket": 35}
 white = [255, 255, 255]
@@ -241,14 +255,14 @@ if kernel_size % 2 == 0:
 #     img_holder[i] = cv2.GaussianBlur(nan_img, (kernel_size, kernel_size), SIGMA[i])
 
 
-plt_images = img_holder
-#######
-nan_img_zero = nan_img.copy()
-nan_img_zero[np.isnan(nan_img)] = 0
-# nan_img_zero_blurr = cv2.GaussianBlur(nan_img_zero, (kernel_size, kernel_size), SIGMA[0])
-#
-nan_img_one = 0 * nan_img_zero.copy() + 1
-nan_img_one[np.isnan(nan_img)] = 0
+# plt_images = img_holder
+# #######
+# nan_img_zero = nan_img.copy()
+# nan_img_zero[np.isnan(nan_img)] = 0
+# # nan_img_zero_blurr = cv2.GaussianBlur(nan_img_zero, (kernel_size, kernel_size), SIGMA[0])
+# #
+# nan_img_one = 0 * nan_img_zero.copy() + 1
+# nan_img_one[np.isnan(nan_img)] = 0
 # nan_img_one_blurr = cv2.GaussianBlur(nan_img_one, (kernel_size, kernel_size), SIGMA[0])
 
 # NAN_img_blurr = nan_img_zero_blurr/nan_img_one_blurr
@@ -263,10 +277,10 @@ nan_img_one[np.isnan(nan_img)] = 0
 #
 # fig2 = implot_func(img_holder,list(dict_omm_rho))
 index = [-2,-2]
-idx = (yaw_img_cord[index[0]],pitch_img_cord[index[1]])
-
-a = np.zeros(test_img.shape)
-a[(yaw_img_cord,pitch_img_cord)] = red
+# idx = (yaw_img_cord[index[0]],pitch_img_cord[index[1]])
+#
+# a = np.zeros(test_img.shape)
+# a[(yaw_img_cord,pitch_img_cord)] = red
 
 # fig2, ax2 = plt.subplots(1,2,dpi=200)
 # ax2[0].scatter(pitch_img_cord,yaw_img_cord)
@@ -326,7 +340,7 @@ def spiral_mat(cord_list):     #not implemented properly
     return spr_mat, mat_dim
 
 
-a = spiral_mat(test_img[(yaw_img_cord, pitch_img_cord)])
+# a = spiral_mat(test_img[(yaw_img_cord, pitch_img_cord)])
 # print(a)
 
 # plt.subplot(111)
@@ -345,7 +359,7 @@ a = spiral_mat(test_img[(yaw_img_cord, pitch_img_cord)])
 # plt.imshow(blank_img)
 # plt.show()
 
-print(test_img[(yaw_img_cord, pitch_img_cord)])
+# print(test_img[(yaw_img_cord, pitch_img_cord)])
 
 # fig4, ax4 = plt.subplots(dpi=120,subplot_kw=dict(projection="polar"),constrained_layout=True)
 # ax4.set_yticks([np.deg2rad(30), np.deg2rad(60), np.deg2rad(90)])
@@ -371,30 +385,71 @@ polar = cart_2_pol(calib_img, num=360, radius=radius, centre=centre)
 lim_lab_list = [["pixels", "pixels"],["deg","pixels"]]
 # implot_func([calib_img,polar],["Calibration image","Projection along radius"],lim_lab_list=lim_lab_list)
 
-plt.subplot(121)
+# plt.subplot(121)
+#
+# plt.imshow(calib_img)
+# plt.title("Calibrated image")
+# plt.xlabel("pixels")
+# plt.ylabel("pixels")
+#
+# plt.subplot(122)
+# plt.imshow(polar)
+# plt.xticks(np.arange(0,361,45))
+# plt.title("Radial unwrap")
+# plt.xlabel("azimuth [deg]")
+# plt.ylabel("radial distance pxls")
+#
+# plt.tight_layout()
+# plt.show()
+#
+# ax6 = plt.subplot(111)
+# plt.imshow(polar)
+# plt.yticks([0 , int(radius/3), int(radius*2/3), radius ])
+# ax6.set_yticklabels(np.arange(0,91,30)[::-1])
+# plt.xticks(np.arange(0,361,45))
+# plt.xlabel("azimuth [deg]")
+# plt.ylabel("elevation [deg]")
+# plt.title("Radial unwrap")
+# plt.tight_layout()
+# plt.show()
 
-plt.imshow(calib_img)
-plt.title("Calibrated image")
-plt.xlabel("pixels")
-plt.ylabel("pixels")
+polar_sample = polar
+polar_sample[int(radius/2):int(radius),181: 181 + 2] = red
+polar_sample[int(radius/2):int(radius),181+3: 181 + 5] = green
+polar_sample[int(radius/2):int(radius),181+6: 181 + 8] = blue
+polar_invert_temp = np.hsplit(polar_sample,2)
+polar_invert_temp[1] = polar_invert_temp[1][:,:-1,:]  # removing 360th entry
+polar_invert = np.hstack(polar_invert_temp[::-1])
 
-plt.subplot(122)
-plt.imshow(polar)
+
+plt.figure(2)
+polar_different_angle = cart_2_pol(calib_img,radius=radius, centre=centre,outer_angle=180,inner_angle=-180)
+ax7 = plt.subplot(111)
+plt.imshow(polar_different_angle)
 plt.xticks(np.arange(0,361,45))
-plt.title("Radial unwrap")
+plt.yticks(np.arange(0,91,30) * ang_conv)
+# plt.yticks([0 , int(radius/3), int(radius*2/3), radius ])
+ax7.set_yticklabels(np.arange(0,91,30)[::-1])
+plt.xticks(np.arange(0,361,45))
+ax7.set_xticklabels(np.arange(-180,181,45))
 plt.xlabel("azimuth [deg]")
-plt.ylabel("radial distance pxls")
-
+plt.ylabel("elevation [deg]")
+plt.title("Radial unwrap ")
 plt.tight_layout()
 plt.show()
-
-ax6 = plt.subplot(111)
-plt.imshow(polar)
-plt.yticks([0 , int(radius/3), int(radius*2/3), radius ])
-ax6.set_yticklabels(np.arange(0,91,30)[::-1])
-plt.xticks(np.arange(0,361,45))
-plt.xlabel("azimuth [deg]")
-plt.ylabel("latitude [deg]")
-plt.title("Radial unwrap")
-plt.tight_layout()
-plt.show()
+#
+#
+# ax8 = plt.subplot(111)
+# plt.imshow(polar_invert)
+# plt.xticks(np.arange(0,361,45))
+# plt.yticks(np.arange(0,91,30) * ang_conv)
+# # plt.yticks([0 , int(radius/3), int(radius*2/3), radius ])
+# ax8.set_yticklabels(np.arange(0,91,30)[::-1])
+# plt.xticks(np.arange(0,361,45))
+# ax8.set_xticklabels(np.arange(-180,181,45))  # changing the xlabels
+#
+# plt.xlabel("azimuth [deg]")
+# plt.ylabel("elevation [deg]")
+# plt.title("Radial unwrap with azimuthal correction")
+# plt.tight_layout()
+# plt.show()

@@ -77,7 +77,7 @@ def cart_2_pol(src, radius, num=360, centre=None, outer_angle=360, inner_angle=0
         outer_angle = np.deg2rad(outer_angle)
         inner_angle = np.deg2rad(inner_angle)
 
-    angs = np.linspace(0, 2 * np.pi, num)[:-1]
+    angs = np.linspace(inner_angle, outer_angle, num)[:-1]
     #
     # x = np.array(x, dtype=int)
     # y = np.array(y, dtype=int)
@@ -87,7 +87,7 @@ def cart_2_pol(src, radius, num=360, centre=None, outer_angle=360, inner_angle=0
             y = centre[1] + r * np.sin(theta)
             polar[r][int(np.rad2deg(theta))][:] = src[int(y)][int(x)][:]
 
-
+    # polar[:][-1][:] = polar[:][0][:]
     return polar
 
 
