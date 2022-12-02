@@ -95,29 +95,42 @@ def gauss_filter(x,y,c,sigma_deg):
     g = np.exp(-(x**2/(2*sigma_deg**2)) + y**2/(2*(sigma_deg*c)**2))
     return g
 
-def spherical_distort_correction(src,radius,num=360,centre=None,inner_angle=-180,outer_angle=180,degrees=True):
+def spherical_distort_correction(src,radius,centre=None):
     if centre is None:
         centre = [int(src.shape[0]/2), int(src.shape[1]/2)]
-    if degrees is True:
-        outer_angle = np.deg2rad(outer_angle)
-        inner_angle = np.deg2rad(inner_angle)
-    angs = np.linspace(inner_angle, outer_angle, num+1)[:-1]
-    ele_angs = np.linspace(np.pi/2, 0, radius)
-    corrected_im = np.zeros(src.shape)
+
     ele_map = np.zeros((src.shape[0], src.shape[1]))
-    azi_map = np.zeros((src.shape[0], src.shape[1]))
     ele_map[:] = np.nan
-    for x in np.arange(centre[0]-radius,centre[0] + radius+1):
-        for y in np.arange(centre[1]-radius,centre[1] + radius+1):
-            ele_map[y][x] = abs(np.sqrt((x - centre[0])**2 + (y - centre[1])**2))
+    corrected_im = np.zeros(src.shape)
+    for x in np.arange(centre[0]-radius, centre[0] + radius+1):
+        for y in np.arange(centre[1]-radius, centre[1] + radius+1):
+            ele_map[x][y] = np.sqrt((x - centre[0])**2 + (y - centre[1])**2)
             if abs(np.sqrt((x - centre[0])**2 + (y - centre[1])**2)) > radius:
-                ele_map[y][x] = np.nan
+                ele_map[x][y] = np.nan
+            corrected_im[x][y] = src[x][y]
     ele_map = ele_map/np.nanmax(ele_map)
+    ele_map_corr = (1 - ele_map) * np.pi/2
     ele_map = np.arccos(ele_map)
+
+
     # np.where(ele_ma[:,]**2 + ele_map[,:]**2 >radius, np.nan, ele_map)
     # mat = plt.matshow(ele_map)
-    # plt.colorbar(mat)
-    return ele_map #, azi_map, corrected_im
+    # plt.colorbar(mat)q
+    return ele_map, ele_map_corr#, azi_map, corrected_im
+
+def azimuth_mapping(src, radius,centre=None):
+    if centre is None:
+        centre = [int(src.shape[0]/2), int(src.shape[1]/2)]
+    azimuth_map  = np.zeros((src.shape[0],src.shape[1]))
+    azimuth_map[:] = np.nan
+    for x in np.arange(centre[0] - radius, centre[0] + radius + 1):
+        for y in np.arange(centre[1] - radius, centre[1] + radius + 1):
+                azimuth_map[x][y] =np.pi - np.arctan2(y - centre[1], x - centre[0])
+                if abs(np.sqrt((x - centre[0])**2 + (y - centre[1])**2)) > radius:
+                    azimuth_map[x][y]  = np.nan
+    return azimuth_map
+
+
 def sub_sampling_func(src, num, sample_size):
     if sample_size == 0:
         remap_img = np.zeros((num, num, 3))
