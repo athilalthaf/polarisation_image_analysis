@@ -3,6 +3,7 @@ import os
 
 
 import numpy as np
+from numpy import sin, cos, linspace,ceil,floor, max, min, round, abs,exp
 import cv2
 import matplotlib.pyplot as plt
 # def down_sampling(src,iter):
@@ -68,9 +69,9 @@ def curve_indexing(src, radius, num, centre=None, outer_angle=360, inner_angle=0
     y = np.array(y, dtype=int)
     return x, y
 
-def cart_2_pol(src, radius, num=360, centre=None, outer_angle=360, inner_angle=0, degrees=True):
-    polar = np.zeros((radius, num,3))
-    polar[:][:] = [255,0,0]
+def pol_2_equirect(src, radius, num=360, centre=None, outer_angle=360, inner_angle=0, degrees=True):
+    polar = np.zeros((radius, num, 3))
+    polar[:][:] = [255, 0, 0]
     if centre is None:
         centre = [int(src.shape[0]/2), int(src.shape[1]/2)]
     if degrees is True:
@@ -81,17 +82,42 @@ def cart_2_pol(src, radius, num=360, centre=None, outer_angle=360, inner_angle=0
     #
     # x = np.array(x, dtype=int)
     # y = np.array(y, dtype=int)
-    for r in range(radius):
+    for r in range(radius): #
         for theta in angs:
             x = centre[0] + r * np.cos(theta)
             y = centre[1] + r * np.sin(theta)
             polar[r][int(np.rad2deg(theta))][:] = src[int(y)][int(x)][:]
 
     # polar[:][-1][:] = polar[:][0][:]
-    return polar
+    return polar, inner_angle, outer_angle
 
+def gauss_filter(x,y,c,sigma_deg):
+    g = np.exp(-(x**2/(2*sigma_deg**2)) + y**2/(2*(sigma_deg*c)**2))
+    return g
 
-
+def spherical_distort_correction(src,radius,num=360,centre=None,inner_angle=-180,outer_angle=180,degrees=True):
+    if centre is None:
+        centre = [int(src.shape[0]/2), int(src.shape[1]/2)]
+    if degrees is True:
+        outer_angle = np.deg2rad(outer_angle)
+        inner_angle = np.deg2rad(inner_angle)
+    angs = np.linspace(inner_angle, outer_angle, num+1)[:-1]
+    ele_angs = np.linspace(np.pi/2, 0, radius)
+    corrected_im = np.zeros(src.shape)
+    ele_map = np.zeros((src.shape[0], src.shape[1]))
+    azi_map = np.zeros((src.shape[0], src.shape[1]))
+    ele_map[:] = np.nan
+    for x in np.arange(centre[0]-radius,centre[0] + radius+1):
+        for y in np.arange(centre[1]-radius,centre[1] + radius+1):
+            ele_map[y][x] = abs(np.sqrt((x - centre[0])**2 + (y - centre[1])**2))
+            if abs(np.sqrt((x - centre[0])**2 + (y - centre[1])**2)) > radius:
+                ele_map[y][x] = np.nan
+    ele_map = ele_map/np.nanmax(ele_map)
+    ele_map = np.arccos(ele_map)
+    # np.where(ele_ma[:,]**2 + ele_map[,:]**2 >radius, np.nan, ele_map)
+    # mat = plt.matshow(ele_map)
+    # plt.colorbar(mat)
+    return ele_map #, azi_map, corrected_im
 def sub_sampling_func(src, num, sample_size):
     if sample_size == 0:
         remap_img = np.zeros((num, num, 3))
@@ -215,7 +241,7 @@ trail_y = int(np.ceil(np.sqrt(len(y)))) - len(y)
 # np.reshape(img_remaped,(int(np.floor(img_remaped.shape[0])),int(np.floor(img_remaped.shape[0]))))
 RAD = np.arange(5,10,2)
 X, Y = [None]*len(RAD), [None]*len(RAD)
-for radius,i in enumerate(RAD):
+for radius, i in enumerate(RAD):
     x,y = curve_indexing(blank_img, radius=radius, num=10)
     # X[i]= x             #?
     print(X)

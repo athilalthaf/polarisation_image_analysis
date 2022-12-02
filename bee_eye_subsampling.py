@@ -8,7 +8,7 @@ from matplotlib import rcParams
 
 rcParams["figure.dpi"] = 120
 from pol_img_functions import implot_func
-from pol_img_functions import cart_2_pol
+from pol_img_functions import pol_2_equirect,gauss_filter,spherical_distort_correction
 
 alpha_max_1_2 = np.deg2rad(np.array([
     [
@@ -172,25 +172,21 @@ rgb[:, 0] += hue[..., 0]
 yaw, pitch, raw = r_eye_ori.as_euler('ZYX', degrees=True).T
 # yaw_norm = (yaw - yaw.min()) / np.max(yaw - yaw.min())
 # pitch_norm = (pitch - pitch.min()) / np.max(pitch - pitch.min())
-plt.figure(1)
-ax1 = plt.subplot(111,polar=False)
-
-plt.scatter(yaw, pitch, s=20, c=np.clip(rgb, 0, 1))
-plt.ylabel("elevation [deg]")
-plt.xlabel("azimuth [deg]")
-plt.title("DRA co-ordinates")
-plt.xlim([-180, 180])
-plt.ylim([0, 90])
-plt.xticks(np.arange(-180,181,45))
-plt.yticks(np.arange(0,91,30))
-plt.tight_layout()
-# plt.yticks([0 , int(radius/3), int(radius*2/3), radius ])
-# ax7.set_yticklabels(np.arange(0,91,30)[::-1])
-
-# ax7.set_xticklabels(np.arange(-180,181,45))
-
-plt.show()
-plt.show()
+# plt.figure(1)
+# ax1 = plt.subplot(111,polar=False)
+#
+# plt.scatter(yaw, pitch, s=20, c=np.clip(rgb, 0, 1))
+# plt.ylabel("elevation [deg]")
+# plt.xlabel("azimuth [deg]")
+# plt.title("DRA co-ordinates")
+# plt.xlim([-180, 180])
+# plt.ylim([0, 90])
+# plt.xticks(np.arange(-180,181,45))
+# plt.yticks(np.arange(0,91,30))
+# plt.tight_layout()
+#
+# plt.show()
+# plt.show()
 
 
 test_img = cv2.imread("test_img.png")
@@ -246,9 +242,13 @@ sig_fwhm_factor = 2.355
 dict_data = np.array([i for i in dict_omm_rho.values()])
 SIGMA = dict_data / sig_fwhm_factor * conversion_pix_per_angle
 
+####
+
 kernel_size = int(4 * max(SIGMA))
 if kernel_size % 2 == 0:
     kernel_size += 1
+
+
 
 # for aoi, i in zip(dict_omm_rho.keys(), range(len(dict_omm_rho))):
 #     print(aoi, dict_omm_rho[aoi])
@@ -299,45 +299,45 @@ index = [-2,-2]
 # plt.show()
 #
 
-def spiral_mat(cord_list):     #not implemented properly
-
-    def up(x_idx, y_idx):
-        x_idx = x_idx
-        y_idx -= 1
-        return x_idx, y_idx
-
-    def left(x_idx, y_idx):
-        x_idx -= 1
-        y_idx =  y_idx
-        return x_idx, y_idx
-
-    def down(x_idx, y_idx):
-        x_idx = x_idx
-        y_idx += 1
-        return x_idx, y_idx
-
-    def right(x_idx, y_idx):
-        x_idx += 1
-        y_idx = y_idx
-        return x_idx, y_idx
-
-    mat_dim = int(np.ceil(np.sqrt(cord_list.shape[0])))
-    if mat_dim % 2 != 0:
-        mat_dim += 1
-
-    spr_mat = np.zeros((mat_dim, mat_dim, cord_list.shape[1]))
-    spr_mat[:] = np.nan
-    centre = int(np.ceil(mat_dim/2))
-    spr_mat[centre, centre] = cord_list[0]       ###y_img_cord is not in the porper order ,do it before img_indx normalize
-
-    rep_counter = 1
-    idx_holder = [centre, centre]
-    # for i in range(len(yaw_img_cord) - 1):
-    #     up(idx_holder[0], idx_holder[1])
-    #     spiral_mat[]
-
-
-    return spr_mat, mat_dim
+# def spiral_mat(cord_list):     #not implemented properly
+#
+#     def up(x_idx, y_idx):
+#         x_idx = x_idx
+#         y_idx -= 1
+#         return x_idx, y_idx
+#
+#     def left(x_idx, y_idx):
+#         x_idx -= 1
+#         y_idx =  y_idx
+#         return x_idx, y_idx
+#
+#     def down(x_idx, y_idx):
+#         x_idx = x_idx
+#         y_idx += 1
+#         return x_idx, y_idx
+#
+#     def right(x_idx, y_idx):
+#         x_idx += 1
+#         y_idx = y_idx
+#         return x_idx, y_idx
+#
+#     mat_dim = int(np.ceil(np.sqrt(cord_list.shape[0])))
+#     if mat_dim % 2 != 0:
+#         mat_dim += 1
+#
+#     spr_mat = np.zeros((mat_dim, mat_dim, cord_list.shape[1]))
+#     spr_mat[:] = np.nan
+#     centre = int(np.ceil(mat_dim/2))
+#     spr_mat[centre, centre] = cord_list[0]       ###y_img_cord is not in the porper order ,do it before img_indx normalize
+#
+#     rep_counter = 1
+#     idx_holder = [centre, centre]
+#     # for i in range(len(yaw_img_cord) - 1):
+#     #     up(idx_holder[0], idx_holder[1])
+#     #     spiral_mat[]
+#
+#
+#     return spr_mat, mat_dim
 
 
 # a = spiral_mat(test_img[(yaw_img_cord, pitch_img_cord)])
@@ -380,9 +380,9 @@ centre = (290, 290)
 n_samples = 360
 polar_img = np.zeros((radius, n_samples, 3))
 
-polar = cart_2_pol(calib_img, num=360, radius=radius, centre=centre)
+polar = pol_2_equirect(calib_img, radius=radius, num=360, centre=centre)
 
-lim_lab_list = [["pixels", "pixels"],["deg","pixels"]]
+lim_lab_list = [["pixels", "pixels"], ["deg", "pixels"]]
 # implot_func([calib_img,polar],["Calibration image","Projection along radius"],lim_lab_list=lim_lab_list)
 
 # plt.subplot(121)
@@ -413,30 +413,44 @@ lim_lab_list = [["pixels", "pixels"],["deg","pixels"]]
 # plt.tight_layout()
 # plt.show()
 
-polar_sample = polar
-polar_sample[int(radius/2):int(radius),181: 181 + 2] = red
-polar_sample[int(radius/2):int(radius),181+3: 181 + 5] = green
-polar_sample[int(radius/2):int(radius),181+6: 181 + 8] = blue
-polar_invert_temp = np.hsplit(polar_sample,2)
-polar_invert_temp[1] = polar_invert_temp[1][:,:-1,:]  # removing 360th entry
-polar_invert = np.hstack(polar_invert_temp[::-1])
 
 
-plt.figure(2)
-polar_different_angle = cart_2_pol(calib_img,radius=radius, centre=centre,outer_angle=180,inner_angle=-180)
-ax7 = plt.subplot(111)
-plt.imshow(polar_different_angle)
-plt.xticks(np.arange(0,361,45))
-plt.yticks(np.arange(0,91,30) * ang_conv)
-# plt.yticks([0 , int(radius/3), int(radius*2/3), radius ])
-ax7.set_yticklabels(np.arange(0,91,30)[::-1])
-plt.xticks(np.arange(0,361,45))
-ax7.set_xticklabels(np.arange(-180,181,45))
-plt.xlabel("azimuth [deg]")
-plt.ylabel("elevation [deg]")
-plt.title("Radial unwrap ")
-plt.tight_layout()
-plt.show()
+equi_rect_sample, azi_min,azi_max = pol_2_equirect(calib_img, radius=radius, centre=centre, outer_angle=180, inner_angle=-180)
+##
+
+cnum = equi_rect_sample.shape[2]
+azi = np.linspace(azi_min,azi_max,equi_rect_sample.shape[0])
+ele = np.linspace(90,0,radius)
+dpp_azi = np.median(np.abs(np.diff(azi)))
+dpp_ele = np.median(np.abs(np.diff(ele)))
+max_val = equi_rect_sample.max()
+sigma_deg = dict_omm_rho["honey bee"]
+kern_azi = np.arange(np.floor(-3 * sigma_deg),np.ceil(3 * sigma_deg), dpp_azi)
+#
+# for e in range(90):
+#     ele_correction = 1/np.cos(np.deg2rad(ele[e]))
+#
+#     kern_ele = np.linspace(max(-90,-3 * ele_correction * sigma_deg), np.ceil(min(90, 3*ele_correction * sigma_deg), dpp_ele))
+#     KA , KE = np.meshgrid(kern_azi, kern_ele)
+#
+#     gk = gauss_filter(KA,KE, ele_correction,sigma_deg)
+#     gk = gk.T/sum(gk)
+
+
+# plt.figure(2)
+# ax7 = plt.subplot(111)
+# plt.imshow(equi_rect_sample)
+# plt.xticks(np.arange(0, 361, 45))
+# plt.yticks(np.arange(0, 91, 30) * ang_conv)
+# # plt.yticks([0 , int(radius/3), int(radius*2/3), radius ])
+# ax7.set_yticklabels(np.arange(0,91,30)[::-1])
+# plt.xticks(np.arange(0,361,45))
+# ax7.set_xticklabels(np.arange(-180,181,45))
+# plt.xlabel("azimuth [deg]")
+# plt.ylabel("elevation [deg]")
+# plt.title("Radial unwrap ")
+# plt.tight_layout()
+# plt.show()
 #
 #
 # ax8 = plt.subplot(111)
@@ -453,3 +467,50 @@ plt.show()
 # plt.title("Radial unwrap with azimuthal correction")
 # plt.tight_layout()
 # plt.show()
+aurora_img = cv2.imread("The_Research Station_3_James_Foster.jpeg")
+aurora_img = aurora_img
+aurora_img_rad = int(4640/2)
+
+# aurora_img_equi = pol_2_equirect(aurora_img, centre=None, radius=aurora_img_rad-50, outer_angle=-180, inner_angle=180)
+# plt.figure(3)
+# ax7 = plt.subplot(111)
+# plt.imshow(aurora_img_equi)
+# plt.xticks(np.arange(0, 361, 45))
+# plt.yticks(np.arange(0, 91, 30) * ang_conv)
+# # plt.yticks([0 , int(radius/3), int(radius*2/3), radius ])
+# ax7.set_yticklabels(np.arange(0,91,30)[::-1])
+# plt.xticks(np.arange(0,361,45))
+# ax7.set_xticklabels(np.arange(-180,181,45))
+# plt.xlabel("azimuth [deg]")
+# plt.ylabel("elevation [deg]")
+# plt.title("Radial unwrap ")
+# plt.tight_layout()
+# plt.show()
+
+dist_img = cv2.imread("test_img_voronoi_image_low_res.png")
+# plt.figure(4)
+# angs = np.linspace(np.pi/2, 0,100)
+# plt.plot(np.cos(angs), angs, label = "distorted")
+# plt.plot(np.linspace(0,1,100),angs,label = "corrected")
+#
+#
+# plt.legend()
+# plt.xlim([0,1])
+# plt.ylim([0,np.pi/2])
+#
+# plt.yticks(ticks=np.linspace(np.pi/2, 0, 4), labels=np.arange(90, -1, -30))
+# plt.xticks(ticks = np.linspace(0, 1, 4))
+# plt.title("Distortion and mapping")
+# plt.xlabel("Relative position from centre")
+# plt.ylabel("Elevation [deg] ")
+# plt.tight_layout()
+# plt.show()
+# #
+# #
+# polar = p(calib_img, radius=radius, num=360, centre=centre)
+fig6, ax6 = plt.subplots()
+ele_map = spherical_distort_correction(calib_img, radius=radius)
+mat = ax6.imshow(ele_map)
+ax6.set_title("Elevation map in angles ")
+cbar = fig6.colorbar(mat, ax=ax6, ticks=[0, np.pi/6, np.pi/3, np.pi/2])
+cbar.set_ticklabels(np.ceil(np.rad2deg([0, np.pi/6, np.pi/3, np.pi/2])))
