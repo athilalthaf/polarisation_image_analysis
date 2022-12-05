@@ -83,10 +83,13 @@ def pol_2_equirect(src, radius, num=360, centre=None, outer_angle=360, inner_ang
     # x = np.array(x, dtype=int)
     # y = np.array(y, dtype=int)
     for r in range(radius): #
-        for theta in angs:
-            x = centre[0] + r * np.cos(theta)
-            y = centre[1] + r * np.sin(theta)
-            polar[r][int(np.rad2deg(theta))][:] = src[int(y)][int(x)][:]
+        for i,theta in enumerate(angs):
+            x = centre[0] + r * np.sin(theta)
+            y = centre[1] + r * np.cos(theta)
+            # i = np.asarray(np.where(angs==theta))[0]
+            # polar[r][int(np.rad2deg(theta))][:] = src[int(x)][int(y)][:]
+            polar[r][i][:] = src[int(y)][int(x)][:]
+
 
     # polar[:][-1][:] = polar[:][0][:]
     return polar, inner_angle, outer_angle
@@ -99,24 +102,24 @@ def spherical_distort_correction(src,radius,centre=None):
     if centre is None:
         centre = [int(src.shape[0]/2), int(src.shape[1]/2)]
 
-    ele_map = np.zeros((src.shape[0], src.shape[1]))
-    ele_map[:] = np.nan
+    ele_map_src = np.zeros((src.shape[0], src.shape[1]))
+    ele_map_src[:] = np.nan
     corrected_im = np.zeros(src.shape)
     for x in np.arange(centre[0]-radius, centre[0] + radius+1):
         for y in np.arange(centre[1]-radius, centre[1] + radius+1):
-            ele_map[x][y] = np.sqrt((x - centre[0])**2 + (y - centre[1])**2)
+            ele_map_src[x][y] = np.sqrt((x - centre[0]) ** 2 + (y - centre[1]) ** 2)
             if abs(np.sqrt((x - centre[0])**2 + (y - centre[1])**2)) > radius:
-                ele_map[x][y] = np.nan
+                ele_map_src[x][y] = np.nan
             corrected_im[x][y] = src[x][y]
-    ele_map = ele_map/np.nanmax(ele_map)
-    ele_map_corr = (1 - ele_map) * np.pi/2
-    ele_map = np.arccos(ele_map)
+    ele_map_src = ele_map_src / np.nanmax(ele_map_src)
+    ele_map_corr = (1 - ele_map_src) * np.pi / 2
+    ele_map_src = np.arccos(ele_map_src)
 
 
     # np.where(ele_ma[:,]**2 + ele_map[,:]**2 >radius, np.nan, ele_map)
     # mat = plt.matshow(ele_map)
     # plt.colorbar(mat)q
-    return ele_map, ele_map_corr#, azi_map, corrected_im
+    return ele_map_src, ele_map_corr#, azi_map, corrected_im
 
 def azimuth_mapping(src, radius,centre=None):
     if centre is None:
@@ -127,8 +130,28 @@ def azimuth_mapping(src, radius,centre=None):
         for y in np.arange(centre[1] - radius, centre[1] + radius + 1):
                 azimuth_map[x][y] =np.pi - np.arctan2(y - centre[1], x - centre[0])
                 if abs(np.sqrt((x - centre[0])**2 + (y - centre[1])**2)) > radius:
-                    azimuth_map[x][y]  = np.nan
+                    azimuth_map[x][y] = np.nan
     return azimuth_map
+
+def pixel_map_func(src,radius, elevation_map_src,elevation_map_corr,azimuth_map):
+    centre = [int(src.shape[0] / 2), int(src.shape[1] / 2)]
+    mapped_img = np.zeros(src.shape)
+    mapped_img[:] = np.nan
+
+    for x in np.arange(centre[0] - radius, centre[0] + radius + 1):
+        for y in np.arange(centre[1] - radius, centre[1] + radius + 1):
+            if abs(np.sqrt((x - centre[0]) ** 2 + (y - centre[1]) ** 2)) > radius:
+                pass
+            else:
+                lookup_values = [elevation_map_src[x][y], azimuth_map[x][y]]
+                # x_new,y_new = np.where(elevation_map_corr==elevation_map_src[x][y])
+                elevation_map_corr[elevation_map_src==elevation_map_src[x][y]]
+                mapped_img[x][y][:] = red
+    # print(x_new, y_new)
+
+
+    return mapped_img
+
 
 
 def sub_sampling_func(src, num, sample_size):
@@ -146,6 +169,7 @@ def sub_sampling_func(src, num, sample_size):
     # # canvas[::sample_size] = src[x_spacing]
     print(subsample_img.shape, remap_img.shape)
     return subsample_img, remap_img
+
 
 
 def implot_func(imlist,title_list,suptitle = None,save= False,lim_lab_list = None ):

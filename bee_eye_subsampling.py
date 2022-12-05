@@ -8,7 +8,7 @@ from matplotlib import rcParams
 
 rcParams["figure.dpi"] = 120
 from pol_img_functions import implot_func
-from pol_img_functions import pol_2_equirect,gauss_filter,spherical_distort_correction,azimuth_mapping
+from pol_img_functions import pol_2_equirect,gauss_filter,spherical_distort_correction,azimuth_mapping,pixel_map_func
 
 alpha_max_1_2 = np.deg2rad(np.array([
     [
@@ -415,7 +415,7 @@ lim_lab_list = [["pixels", "pixels"], ["deg", "pixels"]]
 
 
 
-equi_rect_sample, azi_min,azi_max = pol_2_equirect(calib_img, radius=radius, centre=centre, outer_angle=180, inner_angle=-180)
+equi_rect_sample, azi_min,azi_max = pol_2_equirect(calib_img, radius, centre=centre, outer_angle=180, inner_angle=-180)
 ##
 
 cnum = equi_rect_sample.shape[2]
@@ -510,21 +510,43 @@ dist_img = cv2.imread("test_img_voronoi_image_low_res.png")
 # polar = p(calib_img, radius=radius, num=360, centre=centre)
 blend_dist_img = cv2.imread("test_img_voronoi_image_low_res.png")
 
-fig6, ax6 = plt.subplots()
-ele_map, ele_map_corr = spherical_distort_correction(blend_dist_img, radius=258)
-mat = ax6.imshow(ele_map)
-ax6.set_title("Elevation map correction")
-cbar = fig6.colorbar(mat, ax=ax6, ticks=[0, np.pi/6, np.pi/3, np.pi/2])
-cbar.set_ticklabels(np.ceil(np.rad2deg([0, np.pi/6, np.pi/3, np.pi/2])))
-plt.show()
+# fig6, ax6 = plt.subplots()
+# ele_map, ele_map_corr = spherical_distort_correction(blend_dist_img, radius=258)
+# mat = ax6.imshow(ele_map)
+# ax6.set_title("Elevation map correction")
+# cbar = fig6.colorbar(mat, ax=ax6, ticks=[0, np.pi/6, np.pi/3, np.pi/2])
+# cbar.set_ticklabels(np.ceil(np.rad2deg([0, np.pi/6, np.pi/3, np.pi/2])))
+# plt.show()
 
+#
+# fig7, ax7 = plt.subplots()
+azi_map = azimuth_mapping(calib_img, radius=258)
+# mat = ax7.imshow(azi_map)
+# ax7.set_title("Azimuth values")
+# azi_range = np.deg2rad(np.arange(0, 361, 45))
+# cbar = fig7.colorbar(mat, ax=ax7, ticks=azi_range)
+# cbar.set_ticklabels(np.ceil(np.rad2deg(azi_range)))
+#
+# plt.show()
 
-fig7, ax7 = plt.subplots()
-azi_map = azimuth_mapping(blend_dist_img, radius=258)
-mat = ax7.imshow(azi_map)
-ax7.set_title("Azimuth values")
-azi_range = np.deg2rad(np.arange(0, 361, 45))
-cbar = fig7.colorbar(mat, ax=ax7, ticks=azi_range)
-cbar.set_ticklabels(np.ceil(np.rad2deg(azi_range)))
+# fig8, ax8 = plt.subplots()
+# azi_map = azimuth_mapping(calib_img, radius=258)
+# elevation_map_src, elevation_map_corr = spherical_distort_correction(calib_img, 258)
+# ax8.set_title("Pixel map function")
+# pixel_map= pixel_map_func(calib_img,radius = 258, elevation_map_src=elevation_map_src, elevation_map_corr=elevation_map_corr, azimuth_map=azi_map)
+# # azi_range = np.deg2rad(np.arange(0, 361, 45))
+# # cbar = fig8.colorbar(mat, ax=ax7, ticks=azi_range)
+# # cbar.set_ticklabels(np.ceil(np.rad2deg(azi_range)))
+# plt.imshow(pixel_map)
+# plt.show()
 
+fig8, ax8 = plt.subplots()
+equi, angel, radius  = pol_2_equirect(calib_img,radius=258,num=1000)
+elevation_map_src, elevation_map_corr = spherical_distort_correction(calib_img, 258)
+ax8.set_title("Pixel map function")
+pixel_map= pixel_map_func(calib_img, radius = 258, elevation_map_src=elevation_map_src, elevation_map_corr=elevation_map_corr, azimuth_map=azi_map)
+# azi_range = np.deg2rad(np.arange(0, 361, 45))
+# cbar = fig8.colorbar(mat, ax=ax7, ticks=azi_range)
+# cbar.set_ticklabels(np.ceil(np.rad2deg(azi_range)))
+plt.imshow(equi)
 plt.show()
