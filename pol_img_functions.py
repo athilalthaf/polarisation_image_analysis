@@ -98,7 +98,7 @@ def gauss_filter(x,y,c,sigma_deg):
     g = np.exp(-(x**2/(2*sigma_deg**2)) + y**2/(2*(sigma_deg*c)**2))
     return g
 
-def spherical_distort_correction(src,radius,centre=None):
+def elevation_mapping(src,radius,centre=None):
     if centre is None:
         centre = [int(src.shape[0]/2), int(src.shape[1]/2)]
 
@@ -133,22 +133,25 @@ def azimuth_mapping(src, radius,centre=None):
                     azimuth_map[x][y] = np.nan
     return azimuth_map
 
-def pixel_map_func(src,radius, elevation_map_src,elevation_map_corr,azimuth_map):
+def pixel_map_func(src,radius, elevation_map_src, elevation_map_corr, azimuth_map):
+
     centre = [int(src.shape[0] / 2), int(src.shape[1] / 2)]
     mapped_img = np.zeros(src.shape)
     mapped_img[:] = np.nan
 
-    for x in np.arange(centre[0] - radius, centre[0] + radius + 1):
-        for y in np.arange(centre[1] - radius, centre[1] + radius + 1):
+    for x in range(centre[0] - radius, centre[0] + radius + 1):
+        for y in range(centre[1] - radius, centre[1] + radius + 1):
             if abs(np.sqrt((x - centre[0]) ** 2 + (y - centre[1]) ** 2)) > radius:
                 pass
             else:
-                lookup_values = [elevation_map_src[x][y], azimuth_map[x][y]]
-                # x_new,y_new = np.where(elevation_map_corr==elevation_map_src[x][y])
-                elevation_map_corr[elevation_map_src==elevation_map_src[x][y]]
-                mapped_img[x][y][:] = red
+                lookup_values = [azimuth_map[x][y], elevation_map_corr[x][y]] # values that corresponds to the elevation and azimuth
+                a = np.argwhere(azimuth_map == lookup_values[0]) # returns indices of azimuth that is equal to lookupvalue
+                b = np.abs(elevation_map_src - lookup_values[1]) # difference between elevation_corr and elvation of lookup_values
+                c = b[a[:, 0], a[:, 1]]     #subset of difference from lookup elevation and indices of the correct azimuth
+                d = np.nanargmin(c)         # index that returns minimum difference of values of correct azimuth
+                lookup_idx = a[d]           # index that returns minimum difference and belongs to the original image
+                mapped_img[x][y] = src[lookup_idx[0], lookup_idx[1]] # indexing the lookup values to the mapped image
     # print(x_new, y_new)
-
 
     return mapped_img
 
@@ -160,8 +163,8 @@ def sub_sampling_func(src, num, sample_size):
     else:
         remap_img = np.zeros((num * sample_size, num * sample_size, 3))
     subsample_img = src[::int(np.ceil(src.shape[0]/num)), ::int(np.ceil(src.shape[1]/num)), :]
-    x_spacing = np.arange(0, cols, int(np.ceil(cols / num)))
-    y_spacing = np.arange(0, rows, int(np.ceil(rows / num)))
+    # x_spacing = np.arange(0, cols, int(np.ceil(cols / num)))
+    # y_spacing = np.arange(0, rows, int(np.ceil(rows / num)))
     # canvas[::sample_size][::sample_size][:] = src[x_spacing,y_spacing][:]
     # for x in x_spacing:
     #     for y in y_spacing:
