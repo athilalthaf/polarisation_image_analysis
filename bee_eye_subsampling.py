@@ -520,7 +520,7 @@ blend_dist_img = cv2.imread("test_img_voronoi_image_low_res.png")
 
 #
 # fig7, ax7 = plt.subplots()
-azi_map = azimuth_mapping(calib_img, radius=258)
+# azi_map = azimuth_mapping(calib_img, radius=258)
 # mat = ax7.imshow(azi_map)
 # ax7.set_title("Azimuth values")
 # azi_range = np.deg2rad(np.arange(0, 361, 45))
@@ -541,7 +541,7 @@ azi_map = azimuth_mapping(calib_img, radius=258)
 # plt.show()
 
 fig8, ax8 = plt.subplots()
-equi, angel, radiu_inrts  = pol_2_equirect(calib_img,radius=258,num=1000)
+equi, angel, radiu_inrts = pol_2_equirect(calib_img,radius=258,num=1000)
 elevation_map_src, elevation_map_corr = elevation_mapping(calib_img, 258)
 ax8.set_title("Equirect projection of subsample image ")
 
@@ -554,7 +554,7 @@ plt.imsave("equi_rect.png", equi.astype("uint8"))
 plt.show()
 
 
-## ------subsampled image testing
+                                                                            ## ------subsampled image testing
 fig9, ax9 = plt.subplots()
 calib_img_subsampled,rm= sub_sampling_func(calib_img,100,1)
 ax9.set_title("subsampled image")
@@ -576,7 +576,7 @@ calib_img_subsampled_azimap = azimuth_mapping(calib_img_subsampled,sub_sampled_i
 calib_img_subsampled_elemap_src, calib_img_subsampled_elemap_corr = elevation_mapping(calib_img_subsampled,
                                                                                       sub_sampled_img_radius,
                                                                                       sub_sampled_img_centre)
-calib_img_subsampled_mapped = pixel_map_func(calib_img_subsampled,sub_sampled_img_radius,calib_img_subsampled_elemap_src, calib_img_subsampled_elemap_corr,calib_img_subsampled_azimap)
+calib_img_subsampled_mapped = pixel_map_func(calib_img_subsampled, sub_sampled_img_centre, sub_sampled_img_radius,calib_img_subsampled_elemap_src, calib_img_subsampled_elemap_corr,calib_img_subsampled_azimap)
 # fig10, ax10 = plt.subplots()
 #
 #

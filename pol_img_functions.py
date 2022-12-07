@@ -133,19 +133,22 @@ def azimuth_mapping(src, radius,centre=None):
                     azimuth_map[x][y] = np.nan
     return azimuth_map
 
-def pixel_map_func(src,radius, elevation_map_src, elevation_map_corr, azimuth_map):
+def pixel_map_func(src,centre,radius, elevation_map_src, elevation_map_corr, azimuth_map,thresh=1):
 
-    centre = [int(src.shape[0] / 2), int(src.shape[1] / 2)]
+    # centre = [int(src.shape[0] / 2), int(src.shape[1] / 2)]
     mapped_img = np.zeros(src.shape)
     mapped_img[:] = np.nan
-
+    thresh = np.deg2rad(thresh)
     for x in range(centre[0] - radius, centre[0] + radius + 1):
         for y in range(centre[1] - radius, centre[1] + radius + 1):
             if abs(np.sqrt((x - centre[0]) ** 2 + (y - centre[1]) ** 2)) > radius:
                 pass
             else:
                 lookup_values = [azimuth_map[x][y], elevation_map_corr[x][y]] # values that corresponds to the elevation and azimuth
-                a = np.argwhere(azimuth_map == lookup_values[0]) # returns indices of azimuth that is equal to lookupvalue
+                diff = np.abs(azimuth_map - lookup_values[0]) # difference between azimuth and threshold
+
+                a = np.argwhere(diff<=thresh) # returns indices of azimuth that is very nea
+                # a = np.argwhere(azimuth_map == lookup_values[0]) # returns indices of azimuth that is equal to lookupvalue
                 b = np.abs(elevation_map_src - lookup_values[1]) # difference between elevation_corr and elvation of lookup_values
                 c = b[a[:, 0], a[:, 1]]     #subset of difference from lookup elevation and indices of the correct azimuth
                 d = np.nanargmin(c)         # index that returns minimum difference of values of correct azimuth
