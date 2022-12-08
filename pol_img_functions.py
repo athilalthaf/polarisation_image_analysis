@@ -1,11 +1,12 @@
-import os
-# from basic import dict_omm_rho
-
-
-import numpy as np
-from numpy import sin, cos, linspace,ceil,floor, max, min, round, abs,exp
-import cv2
-import matplotlib.pyplot as plt
+from lib_importer import *
+# import os
+# # from basic import dict_omm_rho
+#
+#
+# import numpy as np
+# from numpy import sin, cos, linspace,ceil,floor, max, min, round, abs,exp
+# import cv2
+# import matplotlib.pyplot as plt
 # def down_sampling(src,iter):
 #     init_size = src.shape
 #     img_down_samp = src
@@ -121,14 +122,14 @@ def elevation_mapping(src,radius,centre=None):
     # plt.colorbar(mat)q
     return ele_map_src, ele_map_corr#, azi_map, corrected_im
 
-def azimuth_mapping(src, radius,centre=None):
+def azimuth_mapping(src, radius,centre=None, angle=np.pi/2):
     if centre is None:
         centre = [int(src.shape[0]/2), int(src.shape[1]/2)]
     azimuth_map  = np.zeros((src.shape[0],src.shape[1]))
     azimuth_map[:] = np.nan
     for x in np.arange(centre[0] - radius, centre[0] + radius + 1):
         for y in np.arange(centre[1] - radius, centre[1] + radius + 1):
-                azimuth_map[x][y] =np.pi - np.arctan2(y - centre[1], x - centre[0])
+                azimuth_map[x][y] =angle - np.arctan2(y - centre[1], x - centre[0])
                 if abs(np.sqrt((x - centre[0])**2 + (y - centre[1])**2)) > radius:
                     azimuth_map[x][y] = np.nan
     return azimuth_map
@@ -156,8 +157,7 @@ def pixel_map_func(src,centre,radius, elevation_map_src, elevation_map_corr, azi
                 mapped_img[x][y] = src[lookup_idx[0], lookup_idx[1]] # indexing the lookup values to the mapped image
     # print(x_new, y_new)
 
-    return mapped_img
-
+    return mapped_img.astype("uint8")
 
 
 def sub_sampling_func(src, num, sample_size):

@@ -1,12 +1,10 @@
+from lib_importer import *
 from scipy.interpolate import splev, splrep
 from scipy.spatial.transform import Rotation as R
-import cv2
-import numpy as np
-import matplotlib.pyplot as plt
 from matplotlib import rcParams
 
 
-rcParams["figure.dpi"] = 120
+# rcParams["figure.dpi"] = 120
 from pol_img_functions import implot_func
 from pol_img_functions import pol_2_equirect,gauss_filter,elevation_mapping,azimuth_mapping,pixel_map_func,sub_sampling_func
 
@@ -555,37 +553,39 @@ plt.show()
 
 
                                                                             ## ------subsampled image testing
-fig9, ax9 = plt.subplots()
+# fig9, ax9 = plt.subplots()
 calib_img_subsampled,rm= sub_sampling_func(calib_img,100,1)
-ax9.set_title("subsampled image")
-# pixel_map= pixel_map_func(calib_img, radius = 258, elevation_map_src=elevation_map_src, elevation_map_corr=elevation_map_corr, azimuth_map=azi_map)
-# azi_range = np.deg2rad(np.arange(0, 361, 45))
-# cbar = fig8.colorbar(mat, ax=ax7, ticks=azi_range)
-# cbar.set_ticklabels(np.ceil(np.rad2deg(azi_range)))
-plt.imshow(calib_img_subsampled)
-plt.xlabel("pixels")
-plt.ylabel("pixels")
-plt.tight_layout()
-plt.imsave("calib_img_subsampled.png",calib_img_subsampled)
-plt.savefig("calib_img_subsampled_fig.png",dpi = 300)
-plt.show()
+# ax9.set_title("subsampled image")
+# # pixel_map= pixel_map_func(calib_img, radius = 258, elevation_map_src=elevation_map_src, elevation_map_corr=elevation_map_corr, azimuth_map=azi_map)
+# # azi_range = np.deg2rad(np.arange(0, 361, 45))
+# # cbar = fig8.colorbar(mat, ax=ax7, ticks=azi_range)
+# # cbar.set_ticklabels(np.ceil(np.rad2deg(azi_range)))
+# plt.imshow(calib_img_subsampled)
+# plt.xlabel("pixels")
+# plt.ylabel("pixels")
+# plt.tight_layout()
+# plt.imsave("calib_img_subsampled.png",calib_img_subsampled)
+# plt.savefig("calib_img_subsampled_fig.png",dpi = 300)
+# plt.show()
 
 sub_sampled_img_centre = [48, 48]
 sub_sampled_img_radius = 47
-calib_img_subsampled_azimap = azimuth_mapping(calib_img_subsampled,sub_sampled_img_radius,sub_sampled_img_centre)
+calib_img_subsampled_azimap = azimuth_mapping(calib_img_subsampled,sub_sampled_img_radius,sub_sampled_img_centre,angle=np.pi)
 calib_img_subsampled_elemap_src, calib_img_subsampled_elemap_corr = elevation_mapping(calib_img_subsampled,
                                                                                       sub_sampled_img_radius,
                                                                                       sub_sampled_img_centre)
-calib_img_subsampled_mapped = pixel_map_func(calib_img_subsampled, sub_sampled_img_centre, sub_sampled_img_radius,calib_img_subsampled_elemap_src, calib_img_subsampled_elemap_corr,calib_img_subsampled_azimap)
+thresh_calib_img = 1
+calib_img_subsampled_mapped = pixel_map_func(calib_img_subsampled, sub_sampled_img_centre, sub_sampled_img_radius,calib_img_subsampled_elemap_src, calib_img_subsampled_elemap_corr,calib_img_subsampled_azimap,thresh=thresh_calib_img)
+
+#
 # fig10, ax10 = plt.subplots()
-#
-#
 # ax10.set_title("azi_map of subsampled image")
 # # pixel_map= pixel_map_func(calib_img, radius = 258, elevation_map_src=elevation_map_src, elevation_map_corr=elevation_map_corr, azimuth_map=azi_map)
-# azi_range = np.deg2rad(np.arange(0, 361, 45))
-# mat10 = plt.imshow(calib_img_subsampled_azimap)
+# azi_range = np.arange(np.nanmin(np.rad2deg(calib_img_subsampled_azimap)),np.nanmax(np.rad2deg(calib_img_subsampled_azimap)),45)
+# mat10 = plt.imshow(np.rad2deg(calib_img_subsampled_azimap))
+# # cbar = fig10.colorbar(mat10, ax=ax10,label = "angles")
 # cbar = fig10.colorbar(mat10, ax=ax10, ticks=azi_range,label = "angles")
-# cbar.set_ticklabels(np.ceil(np.rad2deg(azi_range)))
+# cbar.set_ticklabels(np.ceil(azi_range))
 # plt.xlabel("pixel cordinate")
 # plt.ylabel("pixel cordinate")
 # plt.tight_layout()
@@ -629,7 +629,7 @@ calib_img_subsampled_mapped = pixel_map_func(calib_img_subsampled, sub_sampled_i
 fig13, ax13 = plt.subplots()
 
 
-ax13.set_title("corrected with pixel map function")
+ax13.set_title("corrected image with pixel map function, azi_thresh:{}$^\circ$".format(thresh_calib_img))
 # pixel_map= pixel_map_func(calib_img, radius = 258, elevation_map_src=elevation_map_src, elevation_map_corr=elevation_map_corr, azimuth_map=azi_map)
 ele_range = np.deg2rad(np.arange(0, 91, 30))
 plt.imshow(calib_img_subsampled_mapped)
@@ -642,3 +642,14 @@ plt.tight_layout()
 plt.savefig("calib_img_subsampled_mapped.png", dpi = 300)
 plt.show()
 
+                                                                    #### blender lowres image test
+blend_img_high = cv2.imread("test_img_voronoi_image_high_res.png")
+blend_img_high = blend_img_high[:,:,[2,1,0]]
+blend_img_low = cv2.imread("test_img_voronoi_image_low_res.png")
+blend_img_low = blend_img_low[:,:,[2,1,0]]
+centre = [blend_img_low.shape[0]//2 , blend_img_low.shape[1]//2 ]
+radius = 51
+blend_img_low_azi = azimuth_mapping(src=blend_img_low,radius=radius,centre=centre)
+blend_img_low_ele_src, blend_img_low_ele_corr = elevation_mapping(blend_img_low,radius=radius,centre=centre)
+
+mapped_img = pixel_map_func(src=blend_img_low,centre=centre,radius=radius,elevation_map_src=blend_img_low_ele_src,elevation_map_corr=blend_img_low_ele_corr,azimuth_map=blend_img_low_azi,thresh=.1)
