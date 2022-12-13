@@ -1,5 +1,4 @@
-import numpy as np
-import matplotlib.pyplot as plt
+from lib_importer import *
 # import matplotlib.cm as cm
 gamma = np.linspace(0.00001, 2 * np.pi, 200) # scattering angle
 gamma_ang = np.linspace(0, 360, 200, dtype=int)
@@ -9,16 +8,20 @@ Turbidity = 1
 
 theta_sun = np.deg2rad(60)
 gamma_sun = np.deg2rad(0.00001)
+azi_sun = np.deg2rad(0.00001)
 
-Y_dist_values = np.array([[0.1787,-1.4630],[-0.3554,0.4275],[-0.0227, 5.3251],[0.1206, -2.5771],[-0.0670, 0.3703]])
+
+Y_dist_values = np.array([[0.1787, -1.4630],[-0.3554, 0.4275],[-0.0227, 5.3251],[0.1206, -2.5771],[-0.0670, 0.3703]])
 Y_dist = np.matmul(Y_dist_values,np.matrix([Turbidity,1]).T)
 
 x_dist_values = np.array([[-0.0193, -0.2592], [-0.0665, 0.0008], [-0.0004, 0.2125], [-0.0641, -0.8989], [-0.0033, 0.0452]])
-x_dist = np.matmul(x_dist_values,np.matrix([Turbidity,1]).T)
+x_dist = np.matmul(x_dist_values, np.matrix([Turbidity, 1]).T)
 
 y_dist_values = np.array([[-0.0167, -0.2608], [-0.0950, 0.0092], [-0.0079, 0.2102], [-0.0441, -1.6537], [-0.0109, 0.0529]])
 y_dist = np.matmul(y_dist_values, np.matrix([Turbidity, 1]).T)
 C = 1.2 # scaling factor
+
+
 
 def Perez_luminance(gamma, theta):
     # A = np.linalg.norm([x_dist[0], y_dist[0], Y_dist[0]])

@@ -1,3 +1,5 @@
+import numpy as np
+
 from lib_importer import *
 # import os
 # # from basic import dict_omm_rho
@@ -197,6 +199,16 @@ def sub_sampling_func(src, num, sample_size):
     print(subsample_img.shape, remap_img.shape)
     return subsample_img, remap_img
 
+def image_tile_function(src,x_tile,y_tile):
+                        # tiling function designed to account for azimuthal wrapping and polar flipping
+    x_left_cols = src[:, :x_tile,:]   # select left columns sets to mapped on the right
+    x_right_cols = src[:, -x_tile:,:] # select right columns sets to mapped on the right
+    tiled_image = np.hstack([x_right_cols, src, x_left_cols])
+    top_rows = tiled_image[:y_tile,:,:]           # select the top rows for flipping
+    inverted_top_rows = np.flip(top_rows, axis=(0, 1))  # flip over rows and columns and preserve the color data
+    tiled_image = np.vstack([inverted_top_rows, tiled_image]) # stack the flipped slice over the left right tiled image
+
+    return tiled_image
 
 
 def implot_func(imlist,title_list,suptitle = None,save= False,lim_lab_list = None ):
