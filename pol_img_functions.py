@@ -70,7 +70,9 @@ def curve_indexing(src, radius, num, centre=None, outer_angle=360, inner_angle=0
     y = np.array(y, dtype=int)
     return x, y
 
-def pol_2_equirect(src, radius, num=360, centre=None, outer_angle=360, inner_angle=0, degrees=True):
+def pol_2_equirect(src, radius, num=None, centre=None, outer_angle=360, inner_angle=0, degrees=True):
+    if num is None:
+        num = int(2 * np.pi * radius)
     polar = np.zeros((radius, num, 3))
     polar[:][:] = [255, 0, 0]
     if centre is None:
@@ -92,8 +94,9 @@ def pol_2_equirect(src, radius, num=360, centre=None, outer_angle=360, inner_ang
             polar[r][i][:] = src[int(y)][int(x)][:]
 
 
-    # polar[:][-1][:] = polar[:][0][:]
-    return polar, inner_angle, outer_angle
+    polar[:,-1,:] = polar[:,0,:]
+
+    return polar.astype("uint8")
 
 def gauss_filter(x,y,c,sigma_deg):
     g = np.exp(-(x**2/(2*sigma_deg**2)) + y**2/(2*(sigma_deg*c)**2))
@@ -159,6 +162,24 @@ def pixel_map_func(src,centre,radius, elevation_map_src, elevation_map_corr, azi
 
     return mapped_img.astype("uint8")
 
+
+def gauss_filter_function(sigma,kern_size_x,kern_size_y=None):
+                                        # kernel size should be odd
+    if kern_size_y is None:
+        kern_size_y = kern_size_x
+
+    if kern_size_x % 2 == 0 or kern_size_y % 2 ==0:
+        print("kernel size is not odd!!")
+    else:
+        x_mean = kern_size_x // 2                          # middle value for normalizing the centre
+        y_mean = kern_size_y // 2
+        kernel = np.zeros((kern_size_x, kern_size_y))            #### check the color value is needed for kernel
+        for x in range(kern_size_x):
+            for y  in range(kern_size_y):
+                kernel[x][y] = np.exp(-((x - x_mean)**2/(2 * sigma**2) + (y - y_mean)**2/(2 * sigma**2)))
+
+
+    return kernel
 
 def sub_sampling_func(src, num, sample_size):
     if sample_size == 0:
