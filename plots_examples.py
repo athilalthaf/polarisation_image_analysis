@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from lib_importer import *
-from pol_img_functions import  azimuth_mapping,elevation_mapping,pixel_map_func,pol_2_equirect,gauss_filter_function,image_tile_function
+from pol_img_functions import  azimuth_mapping,elevation_mapping,pixel_map_func,pol_2_equirect,gauss_kernel,image_tile_function
 
 
 blend_img_high = cv2.imread("test_img_voronoi_image_high_res.png")
@@ -121,10 +121,6 @@ equi_plot_after = pol_2_equirect(src=mapped_img, radius=radius, centre=centre,in
 # plt.savefig("aurora_equi_before_800.png", dpi = 300, bbox_inches="tight")
 # plt.show()
 
-
-
-
-
 """
                     validation image
 """
@@ -165,23 +161,24 @@ equi_plot_after = pol_2_equirect(src=mapped_img, radius=radius, centre=centre,in
 """
                     kernels
 """
-# sigma = 5
-# kern_size = 4 * sigma + 1
-# kernel = gauss_filter_function(sigma=sigma,kern_size_x=kern_size)
-#
-# fig1, ax1 = plt.subplots()
-#
-# ax1.set_title("simple gaussian kernel , kernel_size:{}, sigma :{}".format(kern_size,sigma))
-# plt1 = plt.imshow(kernel)
-# cbar = fig1.colorbar(plt1, ax=ax1, label ="weights")
-# # cbar.set_ticklabels(np.ceil(np.rad2deg(ele_range)))
-# plt.xlabel("pixel cordinates")
-# plt.ylabel("pixel cordinates")
-# plt.tight_layout()
-# # plt.imsave("calib_img_subsampled.png",calib_img_subsampled )
-# plt.savefig("simple_gauss_kernel.png", dpi = 300,bbox_inches = "tight")
-#
-# plt.show()
+sigma = 5
+kern_size = 4 * sigma + 1
+ele_val = 0
+kernel = gauss_kernel(sigma=sigma,ele_val=ele_val,kern_size_x=kern_size)
+
+fig1, ax1 = plt.subplots()
+
+ax1.set_title("simple gaussian kernel , elevation :{}$^\circ$".format(ele_val))
+plt1 = plt.imshow(kernel)
+cbar = fig1.colorbar(plt1, ax=ax1, label ="weights")
+# cbar.set_ticklabels(np.ceil(np.rad2deg(ele_range)))
+plt.xlabel("pixel cordinates")
+plt.ylabel("pixel cordinates")
+plt.tight_layout()
+# plt.imsave("calib_img_subsampled.png",calib_img_subsampled )
+plt.savefig("simple_gauss_kernel_0.png", dpi = 300,bbox_inches = "tight")
+
+plt.show()
 
 """
                     tile functions
@@ -195,10 +192,10 @@ fig1, ax1 = plt.subplots()
 ax1.set_title("sample tiling function in action , side_tile:{}$^\circ$, top_tile :{}$^\circ$"
               .format(int(np.ceil(side_tile/equi_plot_after.shape[1]*360)), int(np.ceil(top_tile/equi_plot_after.shape[0]*90))))
 azi_ticks = np.linspace(0, tiled_im.shape[1],11)
-azi_ticks_labels = np.concatenate([[360-45],np.linspace(0,360,9),[45]])
+azi_ticks_labels = np.concatenate([[360-45],np.linspace(0,360,9,dtype=int),[45]])
 
 ele_ticks = np.linspace(0, tiled_im.shape[0],5)
-ele_ticks_labels = np.concatenate([[-30],np.linspace(0,90,4)])
+ele_ticks_labels = np.concatenate([[60],np.linspace(0,90,4,dtype=int)[::-1]])
 
 
 plt.xticks(azi_ticks)
@@ -213,7 +210,34 @@ plt1 = plt.imshow(tiled_im)
 plt.xlabel("azimuth in ($^\circ$)")
 plt.ylabel("elevation in ($^\circ$)")
 ax1.set_aspect(tiled_im.shape[1]/tiled_im.shape[0])
-plt.tight_layout()
-# plt.imsave("calib_img_subsampled.png",calib_img_subsampled )
+# plt.tight_layout()
+plt.imsave("tiled_img_sample_im.png",tiled_im)
 plt.savefig("tiled_img_sample.png", dpi = 300,bbox_inches = "tight")
 plt.show()
+
+"""
+                    dirac image
+"""
+sigma = 5
+kern_size = 4 * sigma + 1
+kernel = gauss_kernel(sigma=sigma, kern_size_x=kern_size)
+
+dirac_delta = np.zeros((*kernel.shape, 3),dtype="uint8")
+dirac_delta[(kernel.shape[0]) // 2][[(kernel.shape[1]) // 2]] = [255, 255, 255]
+fig1, ax1 = plt.subplots()
+ax1.set_title("test image to check convolution")
+
+
+
+plt1 = plt.imshow(dirac_delta)
+
+
+plt.xlabel("pixels")
+plt.ylabel("pixels")
+ax1.set_aspect(1)
+# plt.tight_layout()
+plt.imsave("test_dirac_img.png",dirac_delta)
+plt.savefig("test_dirac.png", dpi = 300,bbox_inches = "tight")
+plt.show()
+
+

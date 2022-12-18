@@ -165,9 +165,18 @@ def pixel_map_func(src,centre,radius, elevation_map_src, elevation_map_corr, azi
     return mapped_img.astype("uint8")
 
 
-def gauss_filter_function(sigma,kern_size_x,kern_size_y=None):
-                                        # kernel size should be odd
-    if kern_size_y is None:
+def gauss_kernel(sigma, ele_val,kern_size_x, kern_size_y=None,degrees = True): ## sigma_ele
+    if degrees== True:
+        ele_val = np.deg2rad(ele_val)
+
+    if ele_val != np.pi/2:
+        sigma_x = sigma * 1 / np.cos(ele_val)
+    else:
+        sigma_x = sigma
+    sigma_y = sigma
+
+
+    if kern_size_y is None:         # kernel size should be odd
         kern_size_y = kern_size_x
 
     if kern_size_x % 2 == 0 or kern_size_y % 2 ==0:
@@ -176,9 +185,11 @@ def gauss_filter_function(sigma,kern_size_x,kern_size_y=None):
         x_mean = kern_size_x // 2                          # middle value for normalizing the centre
         y_mean = kern_size_y // 2
         kernel = np.zeros((kern_size_x, kern_size_y))            #### check the color value is needed for kernel
+        sigma_x = sigma * 1 / np.cos(ele_val)
         for x in range(kern_size_x):
             for y  in range(kern_size_y):
-                kernel[x][y] = np.exp(-((x - x_mean)**2/(2 * sigma**2) + (y - y_mean)**2/(2 * sigma**2)))
+
+                kernel[x,y] = np.exp(-((x - x_mean)**2/(2 * sigma_y**2) + (y - y_mean)**2/(2 * sigma_x**2)))
 
 
     return kernel
@@ -206,9 +217,23 @@ def image_tile_function(src,x_tile,y_tile):
     tiled_image = np.hstack([x_right_cols, src, x_left_cols])
     top_rows = tiled_image[:y_tile,:,:]           # select the top rows for flipping
     inverted_top_rows = np.flip(top_rows, axis=(0, 1))  # flip over rows and columns and preserve the color data
-    tiled_image = np.vstack([inverted_top_rows, tiled_image]) # stack the flipped slice over the left right tiled image
+
+    second_half_inverted = inverted_top_rows[:,:tiled_image.shape[1]//2, :]
+    second_half_inverted[:,::-1,:]
+    inverted_top_rows_shifted = np.hstack([inverted_top_rows[:,tiled_image.shape[1]//2:, :] , second_half_inverted])
+    inverted_top_rows_shifted = np.roll(inverted_top_rows,tiled_image.shape[1]//2,axis=1)
+
+    # inverted_top_rows_shifted = inverted_top_rows[:,::-1,:]
+
+
+    tiled_image = np.vstack([inverted_top_rows_shifted, tiled_image]) # stack the flipped slice over the left right tiled image
 
     return tiled_image
+
+
+# def var_convolve_funct(img, kernel):
+
+
 
 
 def implot_func(imlist,title_list,suptitle = None,save= False,lim_lab_list = None ):

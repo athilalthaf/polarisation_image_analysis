@@ -1,7 +1,6 @@
 from lib_importer import *
-from scipy.interpolate import splev, splrep
-from scipy.spatial.transform import Rotation as R
-from matplotlib import rcParams
+
+# from matplotlib import rcParams
 
 
 # rcParams["figure.dpi"] = 120
