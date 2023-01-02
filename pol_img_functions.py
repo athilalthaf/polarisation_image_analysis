@@ -317,7 +317,7 @@ if kernel_size % 2 == 0:
     kernel_size += 1
 
 for aoi, i in zip(dict_omm_rho.keys(), range(len(dict_omm_rho))):
-    print(aoi, dict_omm_rho[aoi])
+    # print(aoi, dict_omm_rho[aoi])
     img_holder[i] = cv2.GaussianBlur(rand_img, (kernel_size, kernel_size), SIGMA[i])
 
 

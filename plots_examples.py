@@ -1,6 +1,7 @@
 # from bee_eye_subsampling import *
 import matplotlib.pyplot as plt
 import numpy as np
+import scipy.signal
 
 from lib_importer import *
 from pol_img_functions import  azimuth_mapping,elevation_mapping,pixel_map_func,pol_2_equirect,gauss_kernel,image_tile_function
@@ -49,6 +50,7 @@ mapped_img = pixel_map_func(src=blend_img_med, centre=centre, radius=radius, ele
 
 equi_plot_before = pol_2_equirect(src=blend_img_med, radius=radius, centre=centre,inner_angle=180,outer_angle=180+ 360)
 equi_plot_after = pol_2_equirect(src=mapped_img, radius=radius, centre=centre,inner_angle=180,outer_angle=180+360)
+equi_plot_after = cv2.imread("tiled_img_sample_im_01.png")[:,:,[2,1,0]]
 """
                     input image vis
 """
@@ -184,8 +186,8 @@ plt.show()
                     tile functions
 """
 
-side_tile = equi_plot_after.shape[1]//8
-top_tile = equi_plot_after.shape[0]//3
+side_tile = equi_plot_before.shape[1]//8
+top_tile = equi_plot_before.shape[0]//3
 tiled_im = image_tile_function(equi_plot_after,side_tile,top_tile)
 
 fig1, ax1 = plt.subplots()
@@ -211,33 +213,72 @@ plt.xlabel("azimuth in ($^\circ$)")
 plt.ylabel("elevation in ($^\circ$)")
 ax1.set_aspect(tiled_im.shape[1]/tiled_im.shape[0])
 # plt.tight_layout()
-plt.imsave("tiled_img_sample_im.png",tiled_im)
-plt.savefig("tiled_img_sample.png", dpi = 300,bbox_inches = "tight")
+plt.imsave("tiled_img_sample_im_01.png",tiled_im)
+plt.savefig("tiled_img_sample_01.png", dpi = 300,bbox_inches = "tight")
 plt.show()
 
 """
                     dirac image
 """
+# sigma = 5
+# kern_size = 4 * sigma + 1
+# kernel = gauss_kernel(sigma=sigma, kern_size_x=kern_size)
+#
+# dirac_delta = np.zeros((*kernel.shape, 3),dtype="uint8")
+# dirac_delta[(kernel.shape[0]) // 2][[(kernel.shape[1]) // 2]] = [255, 255, 255]
+# fig1, ax1 = plt.subplots()
+# ax1.set_title("test image to check convolution")
+#
+#
+#
+# plt1 = plt.imshow(dirac_delta)
+#
+#
+# plt.xlabel("pixels")
+# plt.ylabel("pixels")
+# ax1.set_aspect(1)
+# # plt.tight_layout()
+# plt.imsave("test_dirac_img.png",dirac_delta)
+# plt.savefig("test_dirac.png", dpi = 300,bbox_inches = "tight")
+# plt.show()
+
+
+"""
+                    convolved image
+"""
 sigma = 5
 kern_size = 4 * sigma + 1
-kernel = gauss_kernel(sigma=sigma, kern_size_x=kern_size)
+kernel = gauss_kernel(sigma=sigma, kern_size_x=kern_size,ele_val=0)
+convolve_img = 3 * [None]
+for _ in range(3):
+    convolve_img[_]= sp.signal.convolve2d(equi_plot_after[:,:,_],kernel)/kernel.sum()
 
-dirac_delta = np.zeros((*kernel.shape, 3),dtype="uint8")
-dirac_delta[(kernel.shape[0]) // 2][[(kernel.shape[1]) // 2]] = [255, 255, 255]
+convolve_img = np.asarray(convolve_img)
+convolve_img = np.rollaxis(convolve_img,0,3)
+convolve_img = convolve_img.astype("uint8")
 fig1, ax1 = plt.subplots()
-ax1.set_title("test image to check convolution")
+ax1.set_title("test image convolution ")
 
 
 
-plt1 = plt.imshow(dirac_delta)
+plt1 = plt.imshow(convolve_img)
+azi_ticks = np.linspace(0, convolve_img.shape[1],11)
+azi_ticks_labels = np.concatenate([[360-45],np.linspace(0,360,9,dtype=int),[45]])
+
+ele_ticks = np.linspace(0, convolve_img.shape[0],5)
+ele_ticks_labels = np.concatenate([[60],np.linspace(0,90,4,dtype=int)[::-1]])
 
 
-plt.xlabel("pixels")
-plt.ylabel("pixels")
-ax1.set_aspect(1)
+plt.xticks(azi_ticks)
+ax1.set_xticklabels(azi_ticks_labels)
+plt.yticks(ele_ticks)
+ax1.set_yticklabels(ele_ticks_labels)
+
+
+plt.xlabel("azimuth in ($^\circ$)")
+plt.ylabel("elevation in ($^\circ$)")
+ax1.set_aspect(convolve_img.shape[1]/convolve_img.shape[0])
 # plt.tight_layout()
-plt.imsave("test_dirac_img.png",dirac_delta)
-plt.savefig("test_dirac.png", dpi = 300,bbox_inches = "tight")
+plt.imsave("conv_img_sample_im_01.png",convolve_img)
+plt.savefig("conv_img_sample_01.png", dpi = 300,bbox_inches = "tight")
 plt.show()
-
-
