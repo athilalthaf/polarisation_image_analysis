@@ -97,11 +97,6 @@ plt.imshow(mapped_img)
 - The code is written by [athilalthaf](https://github.com/athilalthaf)
 
 
-## Roadmap
-
-- Implement a convolution function that accounts the equirectangular projection
-
-- Add different kernel functions as subsampling function other than gaussian
 
 
 ## Acknowledgements
