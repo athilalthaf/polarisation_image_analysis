@@ -1,62 +1,63 @@
-# from bee_eye_subsampling import *
 
+"""
+Plotting different functions in pol_img_functions.
+separated by sections.
+
+uncomment sections to check different functions and its plots.
+
+loads different test images from
+"""
 import scipy.signal
 
-from lib_importer import *
+from lib_importer import * #import base libraries
 from pol_img_functions import  azimuth_mapping,elevation_mapping,pixel_map_func,pol_2_equirect,gauss_kernel,\
-    image_tile_function,  azimuth_to_idx,elevation_to_idx
+    image_tile_function,  azimuth_to_idx,elevation_to_idx   # import relevant functions
 
 
 
 
-
-
-# blend_img_high = cv2.imread("test_img_voronoi_image_high_res.png")
+# blend_img_high = cv2.imread("test_images/test_img_voronoi_image_high_res.png")   ## high resolution image
 # blend_img_high = blend_img_high[:,:,[2,1,0]]
-# blend_img_low = cv2.imread("test_img_voronoi_image_low_res.png")
-# blend_img_low = blend_img_low[:,:,[2,1,0]]
-# blend_img_med = cv2.imread("test_img_voronoi_image_half_res.png")
+blend_img_low = cv2.imread("test_images/test_img_voronoi_image_low_res.png")  # load image different resolutions
+blend_img_low = blend_img_low[:,:,[2,1,0]] # re-order color channels from BGR to RGB
+
+# blend_img_med = cv2.imread("test_images/test_img_voronoi_image_half_res.png")
 # blend_img_med = blend_img_med[:,:,[2,1,0]]
 
 
-# auorora_img = cv2.imread("The_Research Station_3_James_Foster.jpeg")
-# auorora_img = auorora_img[:,:,[2,1,0]]
 """
-                image
+         centre and radius values of different test images
 """
 
-# centre = [54, 54]                       ### low_res
-# radius = 51
-# thresh = 1
+centre = [54, 54]                       ### blend_img_low
+radius = 51
+thresh = 1
 
-# centre = [540, 540]                       ### high_res
+# centre = [270, 270]                       ### blend_img_med
+# radius = 250
+# thresh = .1
+
+# centre = [540, 540]                       ### blend_img_high
 # radius = 503
 # thresh = .05
 
 
-# centre = [auorora_img.shape[0]//2, auorora_img.shape[1]//2]                       ### aurora_im
-# radius = auorora_img.shape[0]//2-712
-# thresh = .05
 
 
-
-centre = [270, 270]                       ### med_res
-radius = 250
-thresh = .1
 
 
 #
-# azimuth_map = azimuth_mapping(src= blend_img_med, radius=radius, centre= centre)
-# elevation_map_src, elevation_map_corr = elevation_mapping(src=blend_img_med,radius=radius,centre=centre)
-# mapped_img = pixel_map_func(src=blend_img_med, centre=centre, radius=radius, elevation_map_src=elevation_map_src,
-#                             elevation_map_corr=elevation_map_corr,
-#                             azimuth_map=azimuth_map,thresh=thresh)
+azimuth_map = azimuth_mapping(src= blend_img_low, radius=radius, centre= centre) # map the azimuth of the image
+elevation_map_src, elevation_map_corr = elevation_mapping(src=blend_img_low,radius=radius,centre=centre) # elevation map of the image original and corrected version
+mapped_img = pixel_map_func(src=blend_img_low, centre=centre, radius=radius, elevation_map_src=elevation_map_src,
+                            elevation_map_corr=elevation_map_corr,
+                             azimuth_map=azimuth_map,thresh=thresh) # correct the image for elevation distortion correction
 #
-# equi_plot_before = pol_2_equirect(src=blend_img_med, radius=radius, centre=centre,inner_angle=180,outer_angle=180+ 360)
-# equi_plot_after = pol_2_equirect(src=mapped_img, radius=radius, centre=centre,inner_angle=180,outer_angle=180+360)
-equi_plot_after = cv2.imread("equirect_test_mid_res_im.png")[:,:,[2,1,0]]
+equi_plot_before = pol_2_equirect(src=blend_img_low, radius=radius, centre=centre,inner_angle=180,outer_angle=180+ 360) # equirectangular projection of input image
+equi_plot_after = pol_2_equirect(src=mapped_img, radius=radius, centre=centre,inner_angle=180,outer_angle=180+360) # equirectangular projection of corrected image
 """
-                    input image vis
+                    input image vis || plot the loaded image
+
 """
 #
 # fig1, ax1 = plt.subplots()
@@ -165,7 +166,7 @@ equi_plot_after = cv2.imread("equirect_test_mid_res_im.png")[:,:,[2,1,0]]
 # plt.show()
 
 """
-                    kernels
+                    kernel visualisation 
 """
 # sigma = 5
 # kern_size = 4 * sigma + 1
@@ -222,7 +223,7 @@ equi_plot_after = cv2.imread("equirect_test_mid_res_im.png")[:,:,[2,1,0]]
 # plt.show()
 
 """
-                    dirac image
+                    test image for convolution
 """
 # sigma = 5
 # kern_size = 4 * sigma + 1
@@ -247,124 +248,10 @@ equi_plot_after = cv2.imread("equirect_test_mid_res_im.png")[:,:,[2,1,0]]
 # plt.show()
 
 
-"""
-                    convolved image
-"""
-sigma = 5
-kern_size = 4 * sigma + 1
-kernel = gauss_kernel(sigma=sigma, kern_size_x=kern_size,ele_val=0)
-kern_centre = (kern_size + 1)// 2
-# convolve_img = 3 * [None]
-# for _ in range(3):
-#     convolve_img[_] = sp.signal.convolve2d(equi_plot_after[:,:,_],kernel)/kernel.sum()
-#
-# convolve_img = np.asarray(convolve_img)
-# convolve_img = np.rollaxis(convolve_img,0,3)
-# convolve_img = convolve_img.astype("uint8")
-# fig1, ax1 = plt.subplots()
-# ax1.set_title("test image convolution ")
-#
-#
-#
-# plt1 = plt.imshow(convolve_img)
-# azi_ticks = np.linspace(0, convolve_img.shape[1],11)
-# azi_ticks_labels = np.concatenate([[360-45],np.linspace(0,360,9,dtype=int),[45]])
-#
-# ele_ticks = np.linspace(0, convolve_img.shape[0],5)
-# ele_ticks_labels = np.concatenate([[60],np.linspace(0,90,4,dtype=int)[::-1]])
-#
-#
-# plt.xticks(azi_ticks)
-# ax1.set_xticklabels(azi_ticks_labels)
-# plt.yticks(ele_ticks)
-# ax1.set_yticklabels(ele_ticks_labels)
-#
-#
-# plt.xlabel("azimuth in ($^\circ$)")
-# plt.ylabel("elevation in ($^\circ$)")
-# ax1.set_aspect(convolve_img.shape[1]/convolve_img.shape[0])
-# # plt.tight_layout()
-# plt.imsave("conv_img_sample_im_01.png",convolve_img)
-# plt.savefig("conv_img_sample_01.png", dpi = 300,bbox_inches = "tight")
-# plt.show()
-  ####
-tiled_im = image_tile_function(equi_plot_after,azimuth_to_idx(equi_plot_after,45),elevation_to_idx(equi_plot_after,30))
-equi_plot_after = tiled_im  ###
-convolved_img = np.zeros(equi_plot_after.shape, dtype="uint8")
-dpp_ele = equi_plot_after.shape[0] / 90          # elevation value per pixel in degrees
-ele_val = np.arange(equi_plot_after.shape[0]) / dpp_ele  # range of elevation values feeding for the
-ele_val = ele_val[::-1]                                  # value will be reversed
-# convolve_strip = np.zeros((kern_size ,equi_plot_after.shape[1]), dtype="uint8")
-ele_val_tiled = ele_val[:(equi_plot_after.shape[0] - equi_plot_after.shape[0])] ###
-ele_val = np.hstack([ele_val_tiled[::-1],ele_val ])  ####
 
-kern_hold = (equi_plot_after.shape[0]) * [None]
-
-for c in range(equi_plot_after.shape[2]):                                      # for each  channel
-# c = 0
-    for i in range(equi_plot_after.shape[0] ):
-        kern = gauss_kernel(sigma=sigma, ele_val=ele_val[i], kern_size_x=kern_size)
-        kern_hold[i] = kern
-        convolve_strip = sp.signal.convolve2d(equi_plot_after[i:i+kern_size, :, c], kern, mode ="same")/kern.sum()
-        # a = equi_plot_after[i:i+kern_size,:,c].shape
-        # print(a)
-        convolved_img[i, :, c] = convolve_strip[0, :]
-
-# convolve_img = 3 * [None]
-#
-# kern = gauss_kernel(sigma=sigma, ele_val=90, kern_size_x=kern_size)
-# for _ in range(3):
-#     convolve_img[_] = sp.signal.convolve2d(equi_plot_after[:,:,_],kern, mode = "same")/kern.sum()
-#
-# convolve_img = np.asarray(convolve_img)
-# convolve_img = np.rollaxis(convolve_img,0,3)
-# convolve_img = convolve_img.astype("uint8")
-
-# convolved_img = convolve_img
-
-# fig = plt.figure()
-# ax = fig.add_subplot(111)
-# plt.ion()
-# fig.show()
-# for i in range(kern_hold.shape[2]):
-#     ax.clear()
-#     ax.imshow(kern_hold[:,:,i])
-#     plt.pause(.1)
-#     fig.canvas.draw()
-
-fig1, ax1 = plt.subplots()
-ax1.set_title("Random image for comvolution sigma =1")
-
-
-
-plt1 = plt.imshow(rand_img)
-# azi_ticks = np.linspace(0, convolved_img.shape[1],11)
-azi_ticks = np.linspace(0, convolved_img.shape[1],9)
-# azi_ticks_labels = np.concatenate([[360-45],np.linspace(0,360,9,dtype=int),[45]])
-azi_ticks_labels = np.linspace(0,360,9,dtype=int)
-
-# ele_ticks = np.linspace(0, convolved_img.shape[0],5)
-ele_ticks = np.linspace(0, convolved_img.shape[0],4)
-# ele_ticks_labels = np.concatenate([[60],np.linspace(0,90,4,dtype=int)[::-1]])
-ele_ticks_labels = np.linspace(0,90,4,dtype=int)[::-1]
-
-
-plt.xticks(azi_ticks)
-ax1.set_xticklabels(azi_ticks_labels)
-plt.yticks(ele_ticks)
-ax1.set_yticklabels(ele_ticks_labels)
-
-
-plt.xlabel("azimuth in ($^\circ$)")
-plt.ylabel("elevation in ($^\circ$)")
-ax1.set_aspect(convolved_img.shape[1]/convolved_img.shape[0])
-plt.tight_layout()
-plt.imsave("random_img_sigma5_im.png",convolved_img)
-plt.savefig("random_img_sigma5.png", dpi = 300,bbox_inches = "tight")
-plt.show()
 
 """
-Archived code
+Archived code for convolution 
 """
 # rand_img = np.random.randint(0, 255, (25,100, 3),dtype="uint8")
 # convolved_img = np.zeros(rand_img.shape, dtype="uint8")
@@ -381,3 +268,63 @@ Archived code
 #         # a = equi_plot_after[i:i+kern_size,:,c].shape
 #         # print(a)
 #         convolved_img[i, :, c] = convolve_strip[0, :]
+# sigma = 5
+# kern_size = 4 * sigma + 1
+# kernel = gauss_kernel(sigma=sigma, kern_size_x=kern_size,ele_val=0)
+# kern_centre = (kern_size + 1)// 2
+#
+#   ####
+# tiled_im = image_tile_function(equi_plot_after,azimuth_to_idx(equi_plot_after,45),elevation_to_idx(equi_plot_after,30))
+# equi_plot_after = tiled_im  ###
+# convolved_img = np.zeros(equi_plot_after.shape, dtype="uint8")
+# dpp_ele = equi_plot_after.shape[0] / 90          # elevation value per pixel in degrees
+# ele_val = np.arange(equi_plot_after.shape[0]) / dpp_ele  # range of elevation values feeding for the
+# ele_val = ele_val[::-1]                                  # value will be reversed
+# # convolve_strip = np.zeros((kern_size ,equi_plot_after.shape[1]), dtype="uint8")
+# ele_val_tiled = ele_val[:(equi_plot_after.shape[0] - equi_plot_after.shape[0])] ###
+# ele_val = np.hstack([ele_val_tiled[::-1],ele_val ])  ####
+#
+# kern_hold = (equi_plot_after.shape[0]) * [None]
+#
+# for c in range(equi_plot_after.shape[2]):                                      # for each  channel
+# # c = 0
+#     for i in range(equi_plot_after.shape[0] ):
+#         kern = gauss_kernel(sigma=sigma, ele_val=ele_val[i], kern_size_x=kern_size)
+#         kern_hold[i] = kern
+#         convolve_strip = sp.signal.convolve2d(equi_plot_after[i:i+kern_size, :, c], kern, mode ="same")/kern.sum()
+#         # a = equi_plot_after[i:i+kern_size,:,c].shape
+#         # print(a)
+#         convolved_img[i, :, c] = convolve_strip[0, :]
+#
+#
+#
+# fig1, ax1 = plt.subplots()
+# ax1.set_title("Random image for comvolution sigma =1")
+#
+#
+#
+# plt1 = plt.imshow(rand_img)
+# # azi_ticks = np.linspace(0, convolved_img.shape[1],11)
+# azi_ticks = np.linspace(0, convolved_img.shape[1],9)
+# # azi_ticks_labels = np.concatenate([[360-45],np.linspace(0,360,9,dtype=int),[45]])
+# azi_ticks_labels = np.linspace(0,360,9,dtype=int)
+#
+# # ele_ticks = np.linspace(0, convolved_img.shape[0],5)
+# ele_ticks = np.linspace(0, convolved_img.shape[0],4)
+# # ele_ticks_labels = np.concatenate([[60],np.linspace(0,90,4,dtype=int)[::-1]])
+# ele_ticks_labels = np.linspace(0,90,4,dtype=int)[::-1]
+#
+#
+# plt.xticks(azi_ticks)
+# ax1.set_xticklabels(azi_ticks_labels)
+# plt.yticks(ele_ticks)
+# ax1.set_yticklabels(ele_ticks_labels)
+#
+#
+# plt.xlabel("azimuth in ($^\circ$)")
+# plt.ylabel("elevation in ($^\circ$)")
+# ax1.set_aspect(convolved_img.shape[1]/convolved_img.shape[0])
+# plt.tight_layout()
+# plt.imsave("random_img_sigma5_im.png",convolved_img)
+# plt.savefig("random_img_sigma5.png", dpi = 300,bbox_inches = "tight")
+# plt.show()
