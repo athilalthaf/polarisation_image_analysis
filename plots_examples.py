@@ -7,9 +7,6 @@ from pol_img_functions import  azimuth_mapping,elevation_mapping,pixel_map_func,
     image_tile_function,  azimuth_to_idx,elevation_to_idx
 
 
-# from matplotlib.animation import  animation
-
-
 
 
 
@@ -367,22 +364,20 @@ plt.savefig("random_img_sigma5.png", dpi = 300,bbox_inches = "tight")
 plt.show()
 
 """
-rand image
-
+Archived code
 """
-
-rand_img = np.random.randint(0, 255, (25,100, 3),dtype="uint8")
-convolved_img = np.zeros(rand_img.shape, dtype="uint8")
-dpp_ele = rand_img.shape[0] / 90          # elevation value per pixel in degrees
-ele_val = np.arange(rand_img.shape[0]) / dpp_ele  # range of elevation values feeding for the
-ele_val = ele_val[::-1]
-sigma = 1
-for c in range(equi_plot_after.shape[2]):                                      # for each  channel
-# c = 0
-    for i in range(rand_img.shape[0]):
-        kern = gauss_kernel(sigma=sigma, ele_val=ele_val[i], kern_size_x=kern_size)
-        # kern_hold[i] = kern
-        convolve_strip = sp.signal.convolve2d(rand_img[i:i+kern_size, :, c], kern, mode ="same")/kern.sum()
-        # a = equi_plot_after[i:i+kern_size,:,c].shape
-        # print(a)
-        convolved_img[i, :, c] = convolve_strip[0, :]
+# rand_img = np.random.randint(0, 255, (25,100, 3),dtype="uint8")
+# convolved_img = np.zeros(rand_img.shape, dtype="uint8")
+# dpp_ele = rand_img.shape[0] / 90          # elevation value per pixel in degrees
+# ele_val = np.arange(rand_img.shape[0]) / dpp_ele  # range of elevation values feeding for the
+# ele_val = ele_val[::-1]
+# sigma = 1
+# for c in range(equi_plot_after.shape[2]):                                      # for each  channel
+# # c = 0
+#     for i in range(rand_img.shape[0]):
+#         kern = gauss_kernel(sigma=sigma, ele_val=ele_val[i], kern_size_x=kern_size)
+#         # kern_hold[i] = kern
+#         convolve_strip = sp.signal.convolve2d(rand_img[i:i+kern_size, :, c], kern, mode ="same")/kern.sum()
+#         # a = equi_plot_after[i:i+kern_size,:,c].shape
+#         # print(a)
+#         convolved_img[i, :, c] = convolve_strip[0, :]

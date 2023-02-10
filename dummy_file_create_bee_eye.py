@@ -1,3 +1,10 @@
+"""
+Orginal script written by Evripidis to compare
+!! this does not work on its with own
+the script is bee_eye_subsampling is a runnable version of this script. Use this just as a reference.
+
+"""
+
 from invertpy.sense import CompoundEye
 from invertpy.io import save_eye2csv, load_csv2eye
 
