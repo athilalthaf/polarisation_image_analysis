@@ -1,12 +1,21 @@
+"""
+Implementing polarisation moadel based on "An Analytical Model for Skylight Polarisation" Wilkie. et al. 2004
+
+implementation is not complete
+"""
+
+
+
 from lib_importer import *
-# import matplotlib.cm as cm
+
+
 gamma = np.linspace(0.00001, 2 * np.pi, 200) # scattering angle
-gamma_ang = np.linspace(0, 360, 200, dtype=int)
-Degree_of_pol = np.sin(gamma) ** 2 / (1 + (np.cos(gamma)) ** 2)
+gamma_ang = np.linspace(0, 360, 200, dtype=int) #scattering angle space
+Degree_of_pol = np.sin(gamma) ** 2 / (1 + (np.cos(gamma)) ** 2) #degree of polarisation based on scattering angle
 
-Turbidity = 1
+Turbidity = 1 #atmospheric turbidity
 
-theta_sun = np.deg2rad(60)
+theta_sun = np.deg2rad(60) # position of sun
 gamma_sun = np.deg2rad(0.00001)
 azi_sun = np.deg2rad(0.00001)
 
@@ -24,6 +33,12 @@ C = 1.2 # scaling factor
 
 
 def Perez_luminance(gamma, theta):
+    """
+
+    :param gamma: scattering angle
+    :param theta: azimuth
+    :return: perez luminance to the corresponding inputs
+    """
     # A = np.linalg.norm([x_dist[0], y_dist[0], Y_dist[0]])
     # B = np.linalg.norm([x_dist[1], y_dist[1], Y_dist[1]])
     # C = np.linalg.norm([x_dist[2], y_dist[2], Y_dist[2]])
@@ -33,16 +48,32 @@ def Perez_luminance(gamma, theta):
     return (1 + A * np.exp(B/np.cos(theta))) * (1 + C * np.exp(D * gamma) + E * np.cos(gamma)**2)
 
 def lin_pol(gamma):
+    """
+    :param gamma: scattering angle
+    :return: linear polarisation corresponding to that angle
+    """
     return np.sin(gamma)**2 /(1 + np.cos(gamma)**2)
 
 
-I_sun = Perez_luminance(gamma_sun,theta_sun)
+I_sun = Perez_luminance(gamma_sun,theta_sun) #sun luminance
 I_90 = Perez_luminance(gamma,theta_sun)
 
 def skylight_intensity(gamma,theta):
+    """
+    skylight intensity function
+    :param gamma: scattering angle of the light
+    :param theta:  azimuth position
+    :return: skylight intensity function
+    """
     return (1/Perez_luminance(gamma, theta) - 1/I_sun) * I_90 * I_sun / (I_sun - I_90)
 
 def Polarisation(gamma,theta):
+    """
+    Polarisation function with scattering
+    :param gamma: scattering angle
+    :param theta: azimuthal position
+    :return: polarisation pattern
+    """
     return 1/C * lin_pol(gamma) * (theta * np.cos(theta) + (np.pi/2 - theta) * skylight_intensity(gamma, theta))
 
 sun_theta = 0.001
@@ -107,28 +138,14 @@ ax4.yaxis.set_ticklabels([30, 60])
 # plt.ylim([90, 0])
 plt.show()
 
-fig5, ax5 = plt.subplots(dpi=120, constrained_layout=True)
-plt5 = ax5.plot(gamma_mesh, lin_pol(gamma_mesh))
-plt.title("Polarisation pattern based on the scatter angle and elevation")
-# ax4.set_xticks([0, np.deg2rad(90), np.deg2rad(180), np.deg2rad(360)])
-# tick = np.arange(0,361,90)
-# ax4.set_xticks(np.deg2rad(tick))
-#
-# ax4.xaxis.set_ticklabels(tick)
-# plt.ylim([90, 0])
-plt.show()
-
-
-# plt.subplot(111)
-# plt.plot(gamma, Degree_of_pol)
-# plt.xlim([0, 2 * np.pi])
-# plt.ylim([0, 1])
-
-# ax.xaxis.set_ticks(theta_ang)
-# a = ax.get_xticks().tolist()
-# a = gamma_ang
-# ax.set_xticklabels(a)
-# plt.xlabel("scattering angle")
-# plt.ylabel("degree of polarisation")
-# plt.title("Scattering angle v/s degree of polarisation")
+# fig5, ax5 = plt.subplots(dpi=120, constrained_layout=True)
+# plt5 = ax5.plot(gamma_mesh, lin_pol(gamma_mesh))
+# plt.title("Polarisation pattern based on the scatter angle and elevation")
+# # ax4.set_xticks([0, np.deg2rad(90), np.deg2rad(180), np.deg2rad(360)])
+# # tick = np.arange(0,361,90)
+# # ax4.set_xticks(np.deg2rad(tick))
+# #
+# # ax4.xaxis.set_ticklabels(tick)
+# # plt.ylim([90, 0])
 # plt.show()
+#
