@@ -50,14 +50,6 @@ Install the required libraries using pip
 ```bash
   pip install -r requirements.txt
 ```
-
-install the packages
-
-```bash
-  pip install .
-```
-
-
 ## Example
 A case of correcting for elevation distortion of a given image.
 
