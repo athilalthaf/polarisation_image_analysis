@@ -43,11 +43,16 @@ def build_right_bee_eye():
             http://iopscience.iop.org/article/10.1088/1748-3182/5/3/036002/pdf
 
     function builds a map of bee right eye ommatidia.
-    :return omm_ori: co-ordinates of ommatidia in terms of elevation and azimuth
-    :return omm_rho: field of view of each ommatidia
-    :return omm_pol: co-ordinates of ommatidia that has polarisation sensitivity
-    :return spectral: co-ordinates of ommatidia that has spectral sensitivity
-    :return ommatidia: the whole ommatidia of bee right eye
+    :return omm_ori: list
+        co-ordinates of ommatidia in terms of elevation and azimuth
+    :return omm_rho: list
+        field of view of each ommatidia
+    :return omm_pol: list
+        co-ordinates of ommatidia that has polarisation sensitivity
+    :return spectral: list
+        co-ordinates of ommatidia that has spectral sensitivity
+    :return ommatidia: list
+        the whole ommatidia of bee right eye
     """
     Delta_phi_min_v = np.deg2rad(1.5)
     Delta_phi_max_v = np.deg2rad(4.5)
