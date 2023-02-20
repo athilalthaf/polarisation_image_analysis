@@ -10,17 +10,17 @@ from lib_importer import *   # import libraries
 
 def img_masking_func(src, num, sample_size, random_color=False):
     """
-    function that samples from an image and returns a masked image
+    function that samples from an image and returns a sampled image
     :param src: np.ndarray
-        input image that needs masking
+        input image that needs sampling
     :param num: int
-        number of the mask along the x and y
+        number of the samples along the x and y
     :param sample_size: int
         width of single mask
-    :param random_color: bool (optional)
-        if True returns masks with colored cells if false return a black and white mask
+    :param random_color: bool, optional
+        if True returns sample with colored cells if false return a black and white mask
     :return masked image: np.ndarray
-          masked image visualised from a random image
+          sampled image visualised from a random image
     """
     img_mask = np.zeros(src.shape, dtype="uint8")  # initialising the mask with input image shape
     img_mask_vis = np.zeros(src.shape, dtype="uint8")
