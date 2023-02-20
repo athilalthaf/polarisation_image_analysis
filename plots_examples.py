@@ -5,7 +5,7 @@ separated by sections.
 
 uncomment sections to check different functions and its plots.
 
-loads different test images from
+loads different test images from test_images directory
 """
 import scipy.signal
 
