@@ -11,11 +11,16 @@ from lib_importer import *   # import libraries
 def img_masking_func(src, num, sample_size, random_color=False):
     """
     function that samples from an image and returns a masked image
-    :param src: input image that needs masking
-    :param num: number of the mask along the x and y
-    :param sample_size: width of single mask
-    :param random_color: if True returns masks with colored cells if false return a black and white mask
-    :return: masked image and masked image visualised from a random image
+    :param src: np.ndarray
+        input image that needs masking
+    :param num: int
+        number of the mask along the x and y
+    :param sample_size: int
+        width of single mask
+    :param random_color: bool (optional)
+        if True returns masks with colored cells if false return a black and white mask
+    :return masked image: np.ndarray
+          masked image visualised from a random image
     """
     img_mask = np.zeros(src.shape, dtype="uint8")  # initialising the mask with input image shape
     img_mask_vis = np.zeros(src.shape, dtype="uint8")
@@ -38,10 +43,16 @@ def img_masking_func(src, num, sample_size, random_color=False):
 def circular_index(src, radius, num):
     """
     takes an image input and returns list of x,y coordinates arranged in a circular fashion
-    :param src: input image that whose circular indices are needed
-    :param radius: radius of the circle needed
-    :param num:  number of points on the circle needed
-    :return: x and y coordinates of the points in the circle
+    :param src: np.ndarray
+        input image that whose circular indices are needed
+    :param radius: int , pixel units
+        radius of the circle needed
+    :param num: int
+        number of points on the circle needed
+    :return x: list
+        x coordinates of the points in the circle
+    :return y: list
+        y coordinates of the points in the circle
     """
     # takes an image input and returns list of x,y coordinates arranged in a circular fashion
     centre = [int(src.shape[0]/2), int(src.shape[1]/2)]      # centre of the image
@@ -60,14 +71,22 @@ def circular_index(src, radius, num):
 def curve_indexing(src, radius, num, centre=None, outer_angle=360, inner_angle=0, degrees=True):
     """
     getting the coordinates of circular sector in the given image
-    :param src: input image in which we need the indices
-    :param radius: radius of the curve
-    :param num: number of points on the curve
-    :param centre:  centre of the curve
-    :param outer_angle:  ending angle
-    :param inner_angle:  starting angle
-    :param degrees:  unit of the angular parameters
-    :return:  return the x and y coordinates of curve in the image
+    :param src: np.nadarray
+        input image in which we need the indices
+    :param radius: int , pixel units
+        radius of the curve
+    :param num: int
+        number of points on the curve
+    :param centre: list ,2 elements, optional
+        centre of the curve
+    :param outer_angle: float, degree ,optional
+    ending angle
+    :param inner_angle:  float, degree, optional
+        starting angle
+    :return x: list
+        x coordinates of the points in the sector
+    :return y: list
+        y coordinates of the points in the sector
     """
     if centre is None:
         centre = [int(src.shape[0]/2), int(src.shape[1]/2)] # in case the centre needs to be specified
@@ -86,14 +105,21 @@ def pol_2_equirect(src, radius, num=None, centre=None, outer_angle=360, inner_an
     """
     Function that converts input skylight image into an equi-rectangular projection
 
-    :param src: input image that needed to be projected into the equi-rectangular image
-    :param radius:  length from centre to the horizon of the image
-    :param num:
-    :param centre: zenith of the sky . usually centre in the image
-    :param outer_angle: angle at which the projection ends
-    :param inner_angle: angle at which the projection starts
-    :param degrees: angle parameters are in degrees or not
-    :return polar: an image array that is a projection of input image
+    :param src: np.ndarray
+        input image that needed to be projected into the equi-rectangular image
+    :param radius: int, pixel units
+        length from centre to the horizon of the image
+    :param num: int, optional
+    :param centre: list, 2 elements, optional
+        zenith of the sky . usually centre in the image
+    :param outer_angle: float, optional
+        angle at which the projection ends
+    :param inner_angle: float, optional
+        angle at which the projection starts
+    :param degrees: bool, optional
+        angle parameters are in degrees or not
+    :return polar: np.ndarray
+        an image array that is a projection of input image
     """
     if num is None:
         num = int(2 * np.pi * radius) # length of the projected image would be the perimeter
@@ -121,11 +147,16 @@ def pol_2_equirect(src, radius, num=None, centre=None, outer_angle=360, inner_an
 def gauss_filter(x,y,c,sigma_deg):
     """
     a 2d gaussian function sample
-    :param x:  x value
-    :param y:  y value
-    :param c:  correction factor
-    :param sigma_deg: sigma of the gaussian
-    :return g:   the corresponding gaussian value
+    :param x:  float
+        x value
+    :param y: float
+        y value
+    :param c:  float
+        correction factor
+    :param sigma_deg: float
+        sigma of the gaussian
+    :return g: float
+        the corresponding gaussian value
     """
     g = np.exp(-(x**2/(2*sigma_deg**2)) + y**2/(2*(sigma_deg*c)**2)) #gaussian expression
     return g
@@ -133,11 +164,16 @@ def gauss_filter(x,y,c,sigma_deg):
 def elevation_mapping(src,radius,centre=None):
     """
     function that maps an elevation from a skylight image
-    :param src: the input image that whose elevation info needs to extracted
-    :param radius: distance from horizon to zenith of the skylight image
-    :param centre: zenith point in the image , default is image centre
-    :return ele_map_src: corresponding elevation values in the input image
-    :return ele_map_corr: elevation values corrected for the distortion
+    :param src: np.ndarray
+        the input image that whose elevation info needs to extracted
+    :param radius: int, pixel units
+        distance from horizon to zenith of the skylight image
+    :param centre: list, optional
+        zenith point in the image , default is image centre
+    :return ele_map_src: np.ndarray
+        corresponding elevation values in the input image
+    :return ele_map_corr: np.ndarray
+        elevation values corrected for the distortion
     """
 
     if centre is None: #centre is taken as centre of iamge centre if not specified
@@ -161,11 +197,16 @@ def elevation_mapping(src,radius,centre=None):
 def azimuth_mapping(src, radius,centre=None, angle=np.pi/2):
     """
     function for mapping the azimuth from the input skylight images
-    :param src: the input image that whose azimuth info needs to extracted
-    :param radius: distance from horizon to zenith of the skylight image
-    :param centre: zenith point in the image , default is image centre
-    :param angle: angle where 0 degree starts from
-    :return azimuth_map: azimuth values corresponding to the skylight image
+    :param src: np.ndarray
+        the input image that whose azimuth info needs to extracted
+    :param radius: int, pixel units
+        distance from horizon to zenith of the skylight image
+    :param centre: list, 2 elements, optional
+        zenith point in the image , default is image centre
+    :param angle: flaot, optional
+        angle where 0 degree starts from
+    :return azimuth_map: np.ndarray
+        azimuth values corresponding to the skylight image
     """
     if centre is None: #centre is taken as centre of iamge centre if not specified
         centre = [int(src.shape[0]/2), int(src.shape[1]/2)]
@@ -181,14 +222,22 @@ def azimuth_mapping(src, radius,centre=None, angle=np.pi/2):
 def pixel_map_func(src,centre,radius, elevation_map_src, elevation_map_corr, azimuth_map,thresh=1):
     """
     function to correct for the elevation distortion of the image
-    :param src: input image that needs to be corrected for elevation
-    :param centre: zenith point in the image , default is image centre
-    :param radius: distance from horizon to zenith of the skylight image
-    :param elevation_map_src: elevation map of the input image
-    :param elevation_map_corr: corrected elevation map of the input image
-    :param azimuth_map: azimuth map of the input image
-    :param thresh: threshold value of elevation comparison to avoid floating point error
-    :return mapped_img: mapped image corrected for elevation distortion
+    :param src: np.ndarray
+        input image that needs to be corrected for elevation
+    :param centre: list, 2 elements
+        zenith point in the image , default is image centre
+    :param radius: int, pixel units
+        distance from horizon to zenith of the skylight image
+    :param elevation_map_src: np.ndarray
+        elevation map of the input image
+    :param elevation_map_corr: np.ndarray
+        corrected elevation map of the input image
+    :param azimuth_map: np.ndarray
+        azimuth map of the input image
+    :param thresh: float
+        threshold value of elevation comparison to avoid floating point error
+    :return mapped_img: np.ndarray
+        mapped image corrected for elevation distortion
     """
     mapped_img = np.zeros(src.shape) #initialising mapped image
     mapped_img[:] = np.nan
@@ -216,12 +265,18 @@ def pixel_map_func(src,centre,radius, elevation_map_src, elevation_map_corr, azi
 def gauss_kernel(sigma, ele_val,kern_size_x, kern_size_y=None,degrees=True):
     """
     gaussian kernel for an equi-rectangular projected image
-    :param sigma: sigma of the kernel
-    :param ele_val: value of the elevation
-    :param kern_size_x: kernel width
-    :param kern_size_y: kernel height , set to same as width unless specified
-    :param degrees :  check whether input angles are in degrees or not. by default taken as degrees
-    :return kernel: gaussian kernel for performing convolution
+    :param sigma: float
+        sigma of the kernel
+    :param ele_val: float
+        value of the elevation
+    :param kern_size_x: int
+        kernel width
+    :param kern_size_y: int, optional
+        kernel height , set to same as width unless specified
+    :param degrees : bool, optional
+        check whether input angles are in degrees or not. by default taken as degrees
+    :return kernel: np.ndarray
+        gaussian kernel for performing convolution
     """
     if degrees== True: # degree taken as default unit for elevation values
         ele_val = np.deg2rad(ele_val)
@@ -251,10 +306,14 @@ def gauss_kernel(sigma, ele_val,kern_size_x, kern_size_y=None,degrees=True):
 def sub_sampling_func(src, num, sample_size):
     """
     a function to simplify the image and use as a dummy test image
-    :param src: input image that needs to subsampled
-    :param num: num of the samples
-    :param sample_size: width of each block
-    :return subsample_img: subsampled image
+    :param src: np.ndarray
+        input image that needs to subsampled
+    :param num: int
+        num of the samples
+    :param sample_size: int
+        width of each block
+    :return subsample_img: np.ndarray
+        subsampled image
     """
     if sample_size == 0:
         remap_img = np.zeros((num, num, 3))
@@ -266,10 +325,14 @@ def sub_sampling_func(src, num, sample_size):
 def image_tile_function(src,x_tile,y_tile):
     """
     tiling function designed to account for azimuthal wrapping and polar flipping       # partial implementation
-    :param src: source image that needs to be tiled
-    :param x_tile:  tiling along the azimuth
-    :param y_tile:  tiling along the elevation
-    :return tiled_img: tiled image
+    :param src: np.ndarray
+        source image that needs to be tiled
+    :param x_tile: int
+        tiling along the azimuth
+    :param y_tile: int
+        tiling along the elevation
+    :return tiled_img: np.ndarray
+        tiled image
     """
 
     top_rows = src[:y_tile,:,:]           # select the top rows for flipping
@@ -292,10 +355,14 @@ def image_tile_function(src,x_tile,y_tile):
 def azimuth_to_idx(src, azi, degree= True):
     """
     calculate the image index corresponding to the azimuth value from an equirect image. assumes image width is 360 degree
-    :param src:  input image whose azimuth index needed to be found
-    :param azi: azimuth value whose index needed to be find out
-    :param degree: assumes input azimuth is in degrees
-    :return img_azi_val: index value of the corresponding azimuth
+    :param src: np.ndaaray
+        input image whose azimuth index needed to be found
+    :param azi: float
+        azimuth value whose index needed to be find out
+    :param degree: bool
+        assumes input azimuth is in degrees
+    :return img_azi_val: int
+        index value of the corresponding azimuth
     """
     if degree is True:
         azi = np.deg2rad(azi)
@@ -306,10 +373,14 @@ def azimuth_to_idx(src, azi, degree= True):
 def elevation_to_idx(src, ele, degree=True):
     """
     calculate the image index corresponding to the elevation  value from equirect image .assumes image width is 90 degree
-    :param src:  input image whose elevation index needed to be found
-    :param ele: elevation value whose index needed to be find out
-    :param degree: assumes input elevation is in degrees
-    :return img_azi_val: index value of the corresponding elevation
+    :param src:  np.ndarray
+        input image whose elevation index needed to be found
+    :param ele: float
+        elevation value whose index needed to be find out
+    :param degree: bool, optional
+        assumes input elevation is in degrees
+    :return img_azi_val: int
+        index value of the corresponding elevation
     """
     if degree is True:
         ele = np.deg2rad(ele)   # normalise image width by max ele value and multiplied by ele value of interest
@@ -321,11 +392,16 @@ def elevation_to_idx(src, ele, degree=True):
 def implot_func(imlist,title_list,suptitle = None,lim_lab_list = None ):
     """
     plotting multiple images as subplots
-    :param imlist: list of images needed as a single plot
-    :param title_list:  list of titles
-    :param suptitle: Supertitle of the plot
-    :param lim_lab_list: list of x and y labels of each image
-    :return : plot that contains all the listed image
+    :param imlist: list, np.ndarray
+        list of images needed as a single plot
+    :param title_list:  list, str
+        list of titles
+    :param suptitle: str, optional
+    Supertitle of the plot
+    :param lim_lab_list: list, list of 2 elements
+        list of x and y labels of each image
+    :return : list (plot)
+    plot that contains all the listed image
     """
     plt.subplots(constrained_layout=True)
     subplot_idx = str("1"+str(len(imlist)))
