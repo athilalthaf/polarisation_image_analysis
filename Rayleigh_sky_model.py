@@ -35,9 +35,12 @@ C = 1.2 # scaling factor
 def Perez_luminance(gamma, theta):
     """
 
-    :param gamma: scattering angle
-    :param theta: azimuth
-    :return: perez luminance to the corresponding inputs
+    :param gamma: float
+        scattering angle
+    :param theta: float
+        azimuth
+    :return: float
+        perez luminance to the corresponding inputs
     """
     # A = np.linalg.norm([x_dist[0], y_dist[0], Y_dist[0]])
     # B = np.linalg.norm([x_dist[1], y_dist[1], Y_dist[1]])
@@ -49,8 +52,10 @@ def Perez_luminance(gamma, theta):
 
 def lin_pol(gamma):
     """
-    :param gamma: scattering angle
-    :return: linear polarisation corresponding to that angle
+    :param gamma: float
+        scattering angle
+    :return: int
+        linear polarisation corresponding to that angle
     """
     return np.sin(gamma)**2 /(1 + np.cos(gamma)**2)
 
@@ -61,18 +66,24 @@ I_90 = Perez_luminance(gamma,theta_sun)
 def skylight_intensity(gamma,theta):
     """
     skylight intensity function
-    :param gamma: scattering angle of the light
-    :param theta:  azimuth position
-    :return: skylight intensity function
+    :param gamma: float
+        scattering angle of the light
+    :param theta:  float
+        azimuth position
+    :return: float
+        skylight intensity function
     """
     return (1/Perez_luminance(gamma, theta) - 1/I_sun) * I_90 * I_sun / (I_sun - I_90)
 
 def Polarisation(gamma,theta):
     """
     Polarisation function with scattering
-    :param gamma: scattering angle
-    :param theta: azimuthal position
-    :return: polarisation pattern
+    :param gamma: float
+        scattering angle
+    :param theta: float
+        azimuthal position
+    :return: float
+        polarisation pattern
     """
     return 1/C * lin_pol(gamma) * (theta * np.cos(theta) + (np.pi/2 - theta) * skylight_intensity(gamma, theta))
 
