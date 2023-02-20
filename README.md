@@ -1,4 +1,4 @@
-# Polarisation image Analyis
+# Polarisation image Analysis
 
 This project models how insects views and process polarised images. the model remaps the skylight inputs into an insects visual field based on anatomical features of insect eye.
 
