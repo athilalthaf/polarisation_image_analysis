@@ -4,6 +4,7 @@ Plotting different functions in pol_img_functions.
 separated by sections.
 
 loads different test images from test_images directory
+all the values for centre, radius  and thresh values are given
 """
 import scipy.signal
 
@@ -24,7 +25,8 @@ blend_img_low = blend_img_low[:,:,[2,1,0]] # re-order color channels from BGR to
 
 
 """
-         centre and radius values of different test images
+         centre, radius, thresh values of different test images.
+         use the value based on the input image instanced. 
 """
 
 centre = [54, 54]                       ### blend_img_low

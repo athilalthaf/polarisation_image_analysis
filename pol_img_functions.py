@@ -1,8 +1,5 @@
 """
 function library for polarisation images processing and handling of image data.
-!! this programs does  not require running
-
-
 """
 
 from lib_importer import *   # import libraries
