@@ -1,6 +1,6 @@
 # Polarisation image Analysis
 
-This project models how insects views and process polarised images. the model remaps the skylight inputs into an insects visual field based on anatomical features of insect eye.
+This project models how insects views and process polarised images. the model remaps the skylight inputs into an insects visual field based on anatomical features of insect eye. For the detailed documentation read the [manual](https://github.com/athilalthaf/polarisation_image_analysis/blob/master/Polarisation%20image%20analysis%20manual.pdf)
 
 ## Installation
 
@@ -62,14 +62,16 @@ plt.imshow(mapped_img)
 plt.show()
 ```
 <img width="201" alt="image" src="https://user-images.githubusercontent.com/77848234/220186171-56bf46d1-1f92-418d-9de3-224c22fbad87.png">
+
+## Project Content
 files and their respective uses are :
 
-## pol_img_func.py
+### pol_img_func.py
 Script act as a function library for processing skylight images.
 The functions in this script can be used for elevation distortion correction, map elevation and azimuth of the sky regions. Along with that we can project the skylight images into a equirectangular projection for the ease of processing. 
 There is a partial implementation gaussian kernel function to convolve a equirectangular image to further analyse the images    
 
-## lib_importer.py
+### lib_importer.py
 An import file that imports all the necessary python libraries needed for the project. Use :
 
 ```python
@@ -78,16 +80,17 @@ from lib_importer import *
 to import all the libraries necessary for the project. If needed, any new libraries  can be added to this script making it automatically available for all the other files in this project.
 
 
-## plots_examples.py
-A script that plots the funtions in the pol_img_func file. Majority of the functions accepts a skylight image input. the sample image has been made in [Blender](https://www.blender.org/) and can be used in the from the folder called test_images folder. 
+### plots_examples.py
+This script loads all functions from pol_img_func, sample images from test_images and then it plots the resulting figures. Running this file gives you a series of plots.  By default, the image loaded is a low res image which can be changed to higher resolution in the script itself. 
 
 
 
-## bee_eye_subsampling.py
+
+### bee_eye_subsampling.py
 
 A modified version of [create_bee_eye.py](https://github.com/InsectRobotics/InvertPy/blob/version-1.1-alpha/examples/create_bee_eye.py) written by [Evripidis Gkanias](https://github.com/evgkanias). plots ommatidial co-ordinates of bee right eye.
 
-## dummy_file_create_bee_eye.py
+### dummy_file_create_bee_eye.py
 
 A dummy file of [create_bee_eye.py](https://github.com/InsectRobotics/InvertPy/blob/version-1.1-alpha/examples/create_bee_eye.py) just to refer the original version
 
