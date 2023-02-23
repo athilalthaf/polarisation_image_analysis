@@ -98,15 +98,14 @@ def curve_indexing(src, radius, num, centre=None, outer_angle=360, inner_angle=0
     y = np.array(y, dtype=int)
     return x, y
 
-def pol_2_equirect(src, radius, num=None, centre=None, outer_angle=360, inner_angle=0, degrees=True):
+def pol_2_equirect(src, radius, centre=None, outer_angle= 180 +360, inner_angle=180, degrees=True):
     """
-    Function that converts input skylight image into an equi-rectangular projection
+    Function that converts input skylight image into an equi-rectangular projection. by default it unrwraps from north and projects anticlockwise.
 
     :param src: np.ndarray
         input image that needed to be projected into the equi-rectangular image
     :param radius: int, pixel units
         length from centre to the horizon of the image
-    :param num: int, optional
     :param centre: list, 2 elements, optional
         zenith of the sky . usually centre in the image
     :param outer_angle: float, optional
@@ -118,8 +117,8 @@ def pol_2_equirect(src, radius, num=None, centre=None, outer_angle=360, inner_an
     :return polar: np.ndarray
         an image array that is a projection of input image
     """
-    if num is None:
-        num = int(2 * np.pi * radius) # length of the projected image would be the perimeter
+
+    num = int(2 * np.pi * radius) # length of the projected image would be the perimeter
     polar = np.zeros((radius, num, 3)) # initialising the output image
     polar[:][:] = [255, 0, 0] # initialsing with red color so to check errors while projecting
     if centre is None:

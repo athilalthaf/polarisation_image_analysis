@@ -9,8 +9,7 @@ all the values for centre, radius  and thresh values are given
 import scipy.signal
 
 from lib_importer import * #import base libraries
-from pol_img_functions import  azimuth_mapping,elevation_mapping,pixel_map_func,pol_2_equirect,gauss_kernel,\
-    image_tile_function,  azimuth_to_idx,elevation_to_idx   # import relevant functions
+from pol_img_functions import  azimuth_mapping,elevation_mapping,pixel_map_func,pol_2_equirect,gauss_kernel,image_tile_function,  azimuth_to_idx,elevation_to_idx   # import relevant functions
 
 
 
@@ -53,8 +52,8 @@ mapped_img = pixel_map_func(src=blend_img_low, centre=centre, radius=radius, ele
                             elevation_map_corr=elevation_map_corr,
                              azimuth_map=azimuth_map,thresh=thresh) # correct the image for elevation distortion correction
 #
-equi_plot_before = pol_2_equirect(src=blend_img_low, radius=radius, centre=centre,inner_angle=180,outer_angle=180+ 360) # equirectangular projection of input image
-equi_plot_after = pol_2_equirect(src=mapped_img, radius=radius, centre=centre,inner_angle=180,outer_angle=180+360) # equirectangular projection of corrected image
+equi_plot_before = pol_2_equirect(src=blend_img_low, radius=radius, centre=centre) # equirectangular projection of input image
+equi_plot_after = pol_2_equirect(src=mapped_img, radius=radius, centre=centre) # equirectangular projection of corrected image
 """
                     input image vis || plot the loaded image
 
