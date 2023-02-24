@@ -111,7 +111,7 @@ def pol_2_equirect(src, radius, centre=None, outer_angle= 180 +360, inner_angle=
     :param outer_angle: float, optional
         angle at which the projection ends
     :param inner_angle: float, optional
-        angle at which the projection starts
+        angle at which the projection starts, 180 denotes north i.e  12'0' clock
     :param degrees: bool, optional
         angle parameters are in degrees or not
     :return polar: np.ndarray
@@ -192,7 +192,7 @@ def elevation_mapping(src,radius,centre=None):
 
 def azimuth_mapping(src, radius,centre=None, angle=np.pi/2):
     """
-    function for mapping the azimuth from the input skylight images
+    function for mapping the azimuth from the input skylight images. maps in a clockwise manner,
     :param src: np.ndarray
         the input image that whose azimuth info needs to extracted
     :param radius: int, pixel units
@@ -200,7 +200,7 @@ def azimuth_mapping(src, radius,centre=None, angle=np.pi/2):
     :param centre: list, 2 elements, optional
         zenith point in the image , default is image centre
     :param angle: flaot, optional
-        angle where 0 degree starts from
+        angle where 0 degree starts from. default set to north 12 '0' clock
     :return azimuth_map: np.ndarray
         azimuth values corresponding to the skylight image
     """
@@ -350,11 +350,11 @@ def image_tile_function(src,x_tile,y_tile):
 
 def azimuth_to_idx(src, azi, degree= True):
     """
-    calculate the image index corresponding to the azimuth value from an equirect image. assumes image width is 360 degree
+    calculate the image index corresponding to the azimuth value from an equirectangular image. assumes image width is 360 degree
     :param src: np.ndaaray
         input image whose azimuth index needed to be found
     :param azi: float
-        azimuth value whose index needed to be find out
+        azimuth value whose index needed to be find out, value goes 0 to 360 from left to right of the image
     :param degree: bool
         assumes input azimuth is in degrees
     :return img_azi_val: int
@@ -372,7 +372,7 @@ def elevation_to_idx(src, ele, degree=True):
     :param src:  np.ndarray
         input image whose elevation index needed to be found
     :param ele: float
-        elevation value whose index needed to be find out
+        elevation value whose index needed to be find out, value goes from 90 to 0 from top to bottom of the image
     :param degree: bool, optional
         assumes input elevation is in degrees
     :return img_azi_val: int
@@ -381,7 +381,7 @@ def elevation_to_idx(src, ele, degree=True):
     if degree is True:
         ele = np.deg2rad(ele)   # normalise image width by max ele value and multiplied by ele value of interest
 
-    img_ele_val = int(src.shape[0] / ( np.pi/ 2 ) * ele)
+    img_ele_val = src.shape[0] - (src.shape[0] / ( np.pi/ 2 ) * ele)
     return img_ele_val
 
 
