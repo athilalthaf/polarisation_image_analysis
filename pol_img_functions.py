@@ -98,7 +98,7 @@ def curve_indexing(src, radius, num, centre=None, outer_angle=360, inner_angle=0
     y = np.array(y, dtype=int)
     return x, y
 
-def pol_2_equirect(src, radius, centre=None, outer_angle= 180 +360, inner_angle=180, degrees=True):
+def pol_2_equirect(src, radius, centre=None, outer_angle= 180 +360, inner_angle=180, degrees=True,channel=True):
     """
     Function that converts input skylight image into an equi-rectangular projection. by default it unrwraps from north and projects anticlockwise.
 
@@ -119,10 +119,15 @@ def pol_2_equirect(src, radius, centre=None, outer_angle= 180 +360, inner_angle=
     """
 
     num = int(2 * np.pi * radius) # length of the projected image would be the perimeter
-    polar = np.zeros((radius, num, 3)) # initialising the output image
-    polar[:][:] = [255, 0, 0] # initialsing with red color so to check errors while projecting
+    if channel == True:
+        polar = np.zeros((radius, num, 3)) # initialising the output image
+        polar[:][:] = [255, 0, 0] # initialsing with red color so to check errors while projecting
+    else:
+        polar = np.zeros((radius, num)) # initialising the output image
+
     if centre is None:
         centre = [int(src.shape[0]/2), int(src.shape[1]/2)] # take center of the image as the default zenith
+
     if degrees is True:
         outer_angle = np.deg2rad(outer_angle) # degree conversion and making degree as the default unit
         inner_angle = np.deg2rad(inner_angle)
@@ -133,12 +138,15 @@ def pol_2_equirect(src, radius, centre=None, outer_angle= 180 +360, inner_angle=
         for i,theta in enumerate(angs):
             x = centre[0] + r * np.sin(theta)  # generate coordinates value for different angles
             y = centre[1] + r * np.cos(theta)
-            polar[r][i][:] = src[int(y)][int(x)][:]  #mapping the coordinates to the final image
-
-
-    polar[:,-1,:] = polar[:,0,:] #first column is equal to last column 0=360
-
-    return polar.astype("uint8") #converting the 8 bit values and avoiding floating points
+            if channel == True:
+                polar[r][i][:] = src[int(y)][int(x)][:]  #mapping the coordinates to the final image
+            else:
+                polar[r][i] = src[int(y)][int(x)]
+    if channel ==True:
+        polar[:,-1,:] = polar[:,0,:] #first column is equal to last column 0=360
+    else:
+        polar[:,-1] = polar[:,0]
+    return polar #converting the 8 bit values and avoiding floating points
 
 def gauss_filter(x,y,c,sigma_deg):
     """
@@ -199,7 +207,7 @@ def azimuth_mapping(src, radius,centre=None, angle=np.pi/2):
         distance from horizon to zenith of the skylight image
     :param centre: list, 2 elements, optional
         zenith point in the image , default is image centre
-    :param angle: flaot, optional
+    :param angle: float, optional
         angle where 0 degree starts from. default set to north 12 '0' clock
     :return azimuth_map: np.ndarray
         azimuth values corresponding to the skylight image
