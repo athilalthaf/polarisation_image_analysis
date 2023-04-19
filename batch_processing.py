@@ -1,21 +1,26 @@
-import numpy as np
-import scipy.stats  as stats
-import os
 import pandas as pd
-import matplotlib.pyplot as plt
-import datetime
-#import pvlib
-import seaborn as sns
-import ephem
 
+from lib_importer import * #importing the libraries
+from pvlib import solarposition
+import pytz
 #parent directory
 
 # a = os.path.dirname(__file__)
 # b = os.chdir(os.path.abspath(a + "/.."))
 
 # os.chdir("skylight_images/apr3_13_cloud_8/1")
-trial = np.arange(1,11)
-radius = 211//2
+"""
+folder naming scheme is as follows :
+    each time a data is collected make a folder in the skylight images folder
+    use the following naming shceme monthday_time_cloud_cloudcover e.g. apr13_15_cloud_8 which means 
+    data is taken on april 13 starting at 3 pm and the cloud cover was 8
+    important thing to not is make the cloud_cover is mentioned at the end of the filename 
+    within this folder we create folders namely 1 to 10 indicating the number of trials
+    make sure exactly 10 trials are taken otherwise the script don't function
+     
+"""
+trial = np.arange(1,11)  # making a range of 1 to 10
+radius = 211//2     #radius of the circular image
 
 folder_name = os.listdir("skylight_images")
 unwanted_name = ["test", ".DS_Store"]
@@ -23,11 +28,16 @@ folder_name = [i for i in folder_name if i not in unwanted_name]
 
 name_list = []
 trial_list = []
-time_list = []
+# time_list = []
 cloud_cover_list = []
 mean_dolp_list = []
 mean_aolp_list = []
 proper_time_list = []
+df_sol  = pd.read_csv("sampa_apr_aug.csv")
+df_sol.drop("Solar Top. azimuth angle (westward from S)",axis = 1, inplace = True)
+df_sol.rename(columns = {"Solar Topocentric zenith angle" : "elevation", "Solar Top. azimuth angle (eastward from N)":"azimuth"},  inplace = True)
+df_sol["Timestamp"] = pd.to_datetime(df_sol["Date"] + " " + df_sol["Time"])
+df_sol = df_sol.drop(["Date", "Time"],axis=1)
 for fdname in folder_name:
     for i in range(10):
         file_name_dolp = "skylight_images/{}/{}/DoLP_pixels.csv".format(fdname, trial[i])
@@ -40,9 +50,9 @@ for fdname in folder_name:
         # extracting time from file to get proper time of elevation and azimuth
         file_time_stamp = os.path.getmtime(file_name_dolp)
         file_time_dateobj = datetime.datetime.fromtimestamp(file_time_stamp)
-        file_time_str = file_time_dateobj.strftime("%Y/%m/%d %H:%M:%S") #modified time in str format
-        file_time_dtime = file_time_dateobj + datetime.timedelta(minutes=1)   # for one minute difference
-        file_time_dtime = file_time_dtime.strftime("%Y-%m-%d %H:%M:%S")
+        file_time_str = file_time_dateobj.strftime("%Y-%m-%d %H:%M:%S") #modified time in str format
+        # file_time_dtime = file_time_dateobj + datetime.timedelta(minutes=1)   # for one minute difference
+        # file_time_dtime = file_time_dtime.strftime("%Y-%m-%d %H:%M:%S")
 
 
 
@@ -70,7 +80,7 @@ for fdname in folder_name:
 
         name_list.append(fdname)
         trial_list.append(trial[i])
-        time_list.append(time_of_day)
+        # time_list.append(time_of_day)
         cloud_cover_list.append(cloud_cover)
         mean_dolp_list.append(mean_dolp)
         mean_aolp_list.append(mean_aolp)
@@ -79,15 +89,15 @@ for fdname in folder_name:
     # plt.show()
     # print(a)
 
-df = pd.DataFrame(list(zip(name_list, trial_list, time_list, cloud_cover_list, mean_dolp_list, np.rad2deg(mean_aolp_list),proper_time_list)), columns=["Day", "Trial", "time", "Cloud cover", "DoLP", "AoLP","Timestamp"])
+df = pd.DataFrame(list(zip(name_list, trial_list, cloud_cover_list, mean_dolp_list, np.rad2deg(mean_aolp_list),proper_time_list)), columns=["Day", "Trial", "Cloud cover", "DoLP", "AoLP","Timestamp"])
 
-elevation_dict = {"10" : 30, "11" : 38, "13" : 48, "15" : 44} # degrees
+# elevation_dict = {"10" : 30, "11" : 38, "13" : 48, "15" : 44} # degrees
+df["Timestamp"] = pd.to_datetime(df["Timestamp"])
+df["Timestamp"] = df["Timestamp"].dt.floor("min")
+merged_df = pd.merge(df,df_sol, on = "Timestamp")
+merged_df["elevation"] = np.round(90 - merged_df["elevation"])
 
-ele_list = [elevation_dict[str(i)] for i in time_list]
-
-df.insert(3, "Elevation", ele_list)
-
-print(df.head())
+print(merged_df.head())
 
 ax1 = df.boxplot(column="DoLP",by="Cloud cover")
 plt.show()
@@ -161,25 +171,40 @@ stats_list = [clo_aolp, clo_dolp, ele_aolp, ele_dolp]
 
 
 # Define the observer's location
-konstanz = ephem.Observer()
-konstanz.lat = '47.6780'
-konstanz.lon = '9.1737'
-konstanz.elevation = 405 # meters above sea level
-konstanz.horizon = '-0:34' # adjust for atmospheric refraction
+# konstanz = ephem.Observer()
+# konstanz.lat = '47.67795'
+# konstanz.lon = '9.173324'
+# konstanz.elevation = 0 # meters above sea level
+# konstanz.horizon = '-0:34' # adjust for atmospheric refraction
 
+lon = 9.1737
+lat = 47.6780
+elevation = 0 # meters above sea level
 # Define the date and time
 ele = []
+timezone = "Europe/Berlin"
+
 for i in range(len(df)):
-    dt = ephem.Date(df["Timestamp"][i])  # 3:10 PM
-    konstanz.date = dt
-# Compute the sun's position
-    sun = ephem.Sun(dt)
-    sun.compute(konstanz)
+    # dt = ephem.Date(df["Timestamp"][i])  # 3:10 PM
+    dt = df["Timestamp"][i]  # 3:10 PM
+    t = pytz.timezone(timezone)
+    sol_pos = solarposition.get_solarposition(dt,lat,lon)
+    sun_ele = sol_pos["elevation"]
+
+
+#     konstanz.date = dt
+# # Compute the sun's position
+# #     sun = ephem.Sun(konstanz)
+#     sun = ephem.Sun(konstanz)
+#     sun.compute(konstanz)
 
     # Get the azimuth and altitude in degrees
-    azimuth = float(sun.az) * 180.0 / ephem.pi
-    altitude = float(sun.alt) * 180.0 / ephem.pi
+    # azimuth = float(sun.az) * 180.0 / ephem.pi
+    # altitude = float(sun.alt) * 180.0 / ephem.pi
+    # altitude = float(np.rad2deg(sun.alt))
 
-    print("DT: {} elevation:{} corrected : {}".format(dt, np.round(altitude), np.round(altitude)+15))
-    ele.append(np.round(altitude))
+    # print("DT: {} elevation:{} corrected : {}".format(dt, np.round(sun_ele.values), 90-np.round(sun_ele)))
+    print("DT: {} elevation:{}".format(dt, np.round(sun_ele.values[0])))
+
+    ele.append(np.round(sun_ele))
     # print("Sun altitude:", altitude)
