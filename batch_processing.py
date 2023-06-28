@@ -1,30 +1,26 @@
-import pandas as pd
-import scipy.stats
-import statsmodels.formula.api as smf
-from lib_importer import * #importing the libraries
-from pvlib import solarposition
-import pytz
-#parent directory
-
-# a = os.path.dirname(__file__)
-# b = os.chdir(os.path.abspath(a + "/.."))
-
-# os.chdir("skylight_images/apr3_13_cloud_8/1")
 """
+Script to process all the aolp and dolp data from the skylight images . these files are across different trial and different bouts of experiments.
+The script gathers all the files, process each files and then stores metrics into a dataframe which is later cleaned and used for statistical analysis
 folder naming scheme is as follows :
     each time a data is collected make a folder in the skylight images folder
-    use the following naming shceme monthday_time_cloud_cloudcover e.g. apr13_15_cloud_8 which means 
+    use the following naming shceme monthday_time_cloud_cloudcover e.g. apr13_15_cloud_8 which means
     data is taken on april 13 starting at 3 pm and the cloud cover was 8
-    important thing to not is make the cloud_cover is mentioned at the end of the filename 
+    important thing to not is make the cloud_cover is mentioned at the end of the filename
     within this folder we create folders namely 1 to 10 indicating the number of trials
     make sure exactly 10 trials are taken otherwise the script don't function
-     
+
 """
+
+
+import statsmodels.formula.api as smf
+from lib_importer import * #importing the libraries
+
+
 trial = np.arange(1,11)  # making a range of 1 to 10
 radius = 211//2     #radius of the circular image
 
 folder_name = os.listdir("skylight_images") # getting the list folders within skylight folders
-unwanted_name = ["test", ".DS_Store"]   # list of folders needed to be excluded
+unwanted_name = ["test", ".DS_Store","camera_caliberation"]   # list of folders needed to be excluded
 folder_name = [i for i in folder_name if i not in unwanted_name] # list of all the folders that contains the images and plots
 """
 the dataframe columns 
@@ -78,8 +74,7 @@ for fdname in folder_name: #going through each measurement
 
         mask = dist_from_centre >= radius  # masking everything out the radius
 
-# plt.imshow(a)
-# plt.show()
+
 
 
 
@@ -110,9 +105,7 @@ for fdname in folder_name: #going through each measurement
         mean_aolp_list.append(mean_aolp) # appending aolp to a  list
         proper_time_list.append(file_time_str) # appending timestamp to a  list
 
-    # plt.imshow(a)
-    # plt.show()
-    # print(a)
+
 
 df = pd.DataFrame(list(zip(name_list, trial_list, cloud_cover_list, mean_dolp_list, np.rad2deg(mean_aolp_list),proper_time_list)),
                   columns=["name", "trial", "cloud_cover", "dolp", "aolp","timestamp"]) # combining the lists to a dataframe
@@ -124,180 +117,98 @@ merged_df = pd.merge(df,df_sol, on = "timestamp") # merging two dataframes sampa
 merged_df["elevation"] = np.round(90 - merged_df["elevation"]) # elevation data is in altitude format
 merged_df["day"] = merged_df.timestamp.dt.day_of_year
 print(merged_df.head()) #priting the final dataframe
-clean_df = merged_df[merged_df.dolp <=.45]
+clean_df = merged_df[merged_df.name == "apr18_17_cloud_7"]
 merged_df.to_excel("raw_data.xlsx")
-# ax1 = df.boxplot(column="DoLP",by="Cloud cover")
-# plt.show()
-#
-# ax2 = df.boxplot(column="AoLP",by="Cloud cover")
-# plt.show()
-#
-# grouped_ele_dolp = df.groupby(["Day","Elevation"]).agg({"DoLP" : ["mean"]})
-# grouped_ele_dolp.columns = ["DoLP mean"]
-# grouped_ele_dolp.reset_index()
-# ax2 = grouped_ele_dolp.boxplot(column="DoLP mean", by="Elevation")
-# # ax2 = sns.boxplot(data=grouped_ele_dolp,groupby="Elevation")
-plt.xlabel(" Elevation in $^\circ$")
-plt.ylabel(" Mean DoLP ")
-plt.tight_layout()
-#
-# grouped_ele_aolp = df.groupby(["Day","Elevation"]).agg({"AoLP" : ["mean"]})
-# grouped_ele_aolp.columns = ["AoLP mean"]
-# grouped_ele_aolp.reset_index()
-# ax3 = grouped_ele_aolp.boxplot(column="AoLP mean", by="Elevation")
-# # ax2 = sns.boxplot(data=grouped_ele_dolp,groupby="Elevation")
-# plt.xlabel(" Elevation in $^\circ$")
-# plt.ylabel(" Mean AoLP ")
-# plt.tight_layout()
-# plt.savefig("group_aolp_ele.png",dpi = 300, bbox_inches="tight")
-# plt.show()
-# plt.savefig("group_dolp_ele.png",dpi = 300, bbox_inches="tight")
-#
-#
-# grouped_clo_dolp = df.groupby(["Day","Cloud cover"]).agg({"DoLP" : ["mean"]})
-# grouped_clo_dolp.columns = ["DoLP mean"]
-# grouped_clo_dolp.reset_index()
-# ax4 = grouped_clo_dolp.boxplot(column="DoLP mean", by="Cloud cover")
-# # ax2 = sns.boxplot(data=grouped_ele_dolp,groupby="Elevation")
-# plt.xlabel(" Cloud cover ")
-# plt.ylabel(" Mean DoLP ")
-# plt.tight_layout()
-# plt.savefig("group_dolp_clo.png",dpi = 300, bbox_inches="tight")
-#
-#
-# grouped_clo_aolp = df.groupby(["Day","Cloud cover"]).agg({"AoLP" : ["mean"]})
-# grouped_clo_aolp.columns = ["AoLP mean"]
-# grouped_clo_aolp.reset_index()
-# ax5 = grouped_clo_aolp.boxplot(column="AoLP mean", by="Cloud cover")
-# # ax2 = sns.boxplot(data=grouped_ele_dolp,groupby="Elevation")
-plt.xlabel(" Cloud cover ")
-plt.ylabel(" Mean AoLP  $^\circ$")
-plt.tight_layout()
-# plt.savefig("group_aolp_clo.png",dpi = 300, bbox_inches="tight")
-#
-# gp = grouped_clo_aolp.groupby("Cloud cover").groups
-#
-#
-# ## stat result anova
-#
-# clo_aolp = grouped_clo_aolp.groupby("Cloud cover")["AoLP mean"].apply(list).reset_index()
-# clo_dolp = grouped_clo_dolp.groupby("Cloud cover")["DoLP mean"].apply(list).reset_index()
-#
-# stat_clo_aolp = stats.f_oneway(*clo_aolp["AoLP mean"])
-# stat_clo_dolp = stats.f_oneway(*clo_dolp["DoLP mean"])
-#
-# ele_aolp = grouped_ele_aolp.groupby("Elevation")["AoLP mean"].apply(list).reset_index()
-# ele_dolp = grouped_ele_dolp.groupby("Elevation")["DoLP mean"].apply(list).reset_index()
-#
-# stat_ele_aolp = stats.f_oneway(*ele_aolp["AoLP mean"])
-# stat_ele_dolp = stats.f_oneway(*ele_dolp["DoLP mean"])
-#
-#
-# stats_list = [clo_aolp, clo_dolp, ele_aolp, ele_dolp]
 
 
-
-# Define the observer's location
-# konstanz = ephem.Observer()
-# konstanz.lat = '47.67795'
-# konstanz.lon = '9.173324'
-# konstanz.elevation = 0 # meters above sea level
-# konstanz.horizon = '-0:34' # adjust for atmospheric refraction
-
-# lon = 9.1737
-# lat = 47.6780
-# elevation = 0 # meters above sea level
-# # Define the date and time
-# ele = []
-# timezone = "Europe/Berlin"
-#
-# for i in range(len(df)):
-#     # dt = ephem.Date(df["Timestamp"][i])  # 3:10 PM
-#     dt = df["Timestamp"][i]  # 3:10 PM
-#     t = pytz.timezone(timezone)
-#     sol_pos = solarposition.get_solarposition(dt,lat,lon)
-#     sun_ele = sol_pos["elevation"]
-#
-#
-# #     konstanz.date = dt
-# # # Compute the sun's position
-# # #     sun = ephem.Sun(konstanz)
-# #     sun = ephem.Sun(konstanz)
-# #     sun.compute(konstanz)
-#
-#     # Get the azimuth and altitude in degrees
-#     # azimuth = float(sun.az) * 180.0 / ephem.pi
-#     # altitude = float(sun.alt) * 180.0 / ephem.pi
-#     # altitude = float(np.rad2deg(sun.alt))
-#
-#     # print("DT: {} elevation:{} corrected : {}".format(dt, np.round(sun_ele.values), 90-np.round(sun_ele)))
-#     print("DT: {} elevation:{}".format(dt, np.round(sun_ele.values[0])))
-#
-#     ele.append(np.round(sun_ele))
-#     # print("Sun altitude:", altitude)
-# sort_cloud = merged_df["Cloud cover"].sort_values().unique()
-# sns.regplot(data= merged_df, x = "elevation", y ="DoLP",color = "black",scatter=False )
-# sns.scatterplot(data = merged_df,x = "elevation",y = "DoLP", hue = "Cloud cover",hue_order = sort_cloud,palette = "cool")
-# plt.xlim([0,50])
-# plt.ylim([0,.5])
-plt.xlabel("elevation in $^\circ$")
-# plt.ylabel("DoLP")
-plt.title("AoLP v/s Cloud cover")
-# plt.tight_layout()
-#
-# plt.savefig("DoLP_ele_scatter_reg.png",dpi = 300, bbox_inches="tight")
-#
-# merged_df["Cloud cover"] = merged_df["Cloud cover"].astype(int)
-# merged_df.sort_values("Cloud cover")
-# sort_elevation = merged_df["elevation"].sort_values().unique()
-# sns.regplot(data= merged_df, x = "Cloud cover", y ="DoLP",color = "black",scatter=False )
-# sns.scatterplot(data = merged_df,x = "Cloud cover",y = "DoLP")
-# # plt.xlim([0,50])
-# plt.ylim([0,.5])
-plt.xlabel("Cloud cover")
-plt.ylabel("DoLP")
-plt.title("DoLP v/s cloud cover")
-plt.tight_layout()
-# #
-plt.savefig("aolp_cloudcover_till_may1week.png",dpi = 300, bbox_inches="tight")
-#
-# slope, intercept, r_value, p_value, std_err = stats.linregress(merged_df['elevation'], merged_df['DoLP'])
-# # extract the regression equation and R-squared value
-# print("Regression Equation: y = {:.2f}x + {:.2f}".format(slope, intercept))
-# print("R-squared value: {:.2f}".format(r_value**2))
-# print("p value: {:.4f}".format(p_value))
-#
-# slope, intercept, r_value, p_value, std_err = stats.linregress(merged_df['Cloud cover'], merged_df['DoLP'])
-# # extract the regression equation and R-squared value
-# print("Regression Equation: y = {:.2f}x + {:.2f}".format(slope, intercept))
-# print("R-squared value: {:.2f}".format(r_value**2))
-# print("p value: {:.8f}".format(p_value))
-#
-#
-# # sns.regplot(data= merged_df, x = "azimuth", y ="AoLP",color = "black",scatter=False )
-# sns.scatterplot(data = merged_df,x = "azimuth",y = "AoLP", hue = "Cloud cover",hue_order = sort_cloud,palette = "cool")
-# # plt.xlim([0,50])
-# # plt.ylim([0,.5])
-# plt.xlabel("Azimuth in $^\circ$")
-# plt.ylabel("AoLP in $^\circ$")
-# plt.title("AoLP v/s Azimuth")
-# plt.tight_layout()
-#
-# plt.savefig("AoLP_cloud_scatter.png",dpi = 300, bbox_inches="tight")
-#
-# outlier = merged_df[merged_df.cloud_cover == 7].dolp >= .45
-# clean_df = merged_df[merged_df.dolp <=.45]
-#
-palette2 = sns.dark_palette("#69d", reverse=True, n_colors =9).as_hex()
+palette2 = sns.dark_palette("#69d", reverse=True, n_colors =9).as_hex() #color palette from blue to grey for cloud cover
 # sns.lmplot(data= b, x = "elevation", y ="dolp",hue = "cloud_cover" ,palette = palette2)
+palette_ele = sns.color_palette(n_colors=len(clean_df.elevation.unique())).as_hex()  # color palette for elevation
+# clean_df = clean_df.astype({"day":"string"})
+model = smf.mixedlm("aolp ~ azimuth*elevation*cloud_cover + (1| day)", data=clean_df,groups = clean_df.day) # model for glmm
+result = model.fit() # fittting
+null_model = smf.mixedlm("aolp ~  + (1 | day) ", data=clean_df,groups = clean_df.day) # null model to compare
+null_result = null_model.fit() # fitting
+print(result.summary()) # getting the summary
+
+LR_stat = -2 * (null_result.llf - result.llf) # checking the significance w.r.t null model
+p_val = stats.chi2.sf(LR_stat,result.df_modelwc)  # p value of model selecation
+print(f"no. of parameters : {result.df_modelwc}")
+print(f"p_value w.r.t. null model : {p_val}")
 
 
-model = smf.mixedlm("dolp ~ azimuth+ elevation + cloud_cover + azimuth:cloud_cover+ elevation:cloud_cover+ elevation:azimuth:cloud_cover + (1 | day) ", data=clean_df,groups = clean_df.day)
-result = model.fit()
-null_model = smf.mixedlm("dolp ~  + (1 | day) ", data=clean_df,groups = clean_df.day)
-null_result = null_model.fit()
-print(result.summary())
 
-LR_stat = -2 * (null_result.llf - result.llf)
-p_val = stats.chi2.sf(LR_stat,result.df_modelwc)
-print(p_val)
+
+
+ele_range = np.arange(clean_df.elevation.min(), clean_df.elevation.max()+ 1) # getting the range of elevation
+counts = clean_df.elevation.value_counts() # counting each elevation
+
+counts = counts.reindex(ele_range,fill_value=0) # reindexing
+
+
+date = datetime.datetime.now() # getting the current date time  for saving images with date  and preventing file overwriting
+date = date.strftime("%Y-%m-%d %H:%M:%S") # converting to str format
+
+"""
+PLOTS !!
+"""
+"""
+DoLP v/s Cloud Cover
+"""
+plt.figure(1)
+sns.stripplot(data = clean_df,x="cloud_cover",y="dolp",hue="cloud_cover",palette=palette2,legend=False,size = 2)
+plt.xlabel("Cloud Cover")
+plt.ylabel("DoLP")
+plt.title("DoLP v/s Cloud cover")
+plt.tight_layout()
+plt.savefig("cloud_cover_dolp "+date+ " .png", dpi=300, bbox_inches="tight")
+
+"""
+AoLP v/s Cloud Cover
+"""
+plt.figure(2)
+sns.stripplot(data = clean_df,x="cloud_cover",y="aolp",hue="cloud_cover",palette=palette2,legend=False,size = 2) #creating a stripplot to show the AoLP variation on different cloud covers
+plt.xlabel("Cloud Cover")
+plt.ylabel("AoLP in $^\circ$")
+plt.title("AoLP v/s Cloud cover")
+plt.tight_layout()
+plt.savefig("cloud_cover_aolp "+date+ " .png", dpi=300, bbox_inches="tight")
+
+
+"""
+DoLP v/s elevation
+"""
+plt.figure(3)
+sns.lmplot(data= clean_df, x = "elevation", y ="dolp",hue = "cloud_cover" ,palette = palette2) #creating a linear fit to show the DoLP variation on elevation for different cloud covers
+plt.xlabel("elevation in $^\circ$")
+plt.ylabel("DoLP")
+plt.title("DoLP v/s elevation")
+plt.savefig("ele_dolp "+date+ " .png", dpi=300, bbox_inches="tight")
+
+"""
+AoLP v/s azimuth
+"""
+plt.figure(4)
+sns.lmplot(data= clean_df, x = "azimuth", y ="aolp",hue = "cloud_cover" ,palette = palette2) #creating a linear fit to show the AoLP variation on azimuth for different cloud covers
+plt.xlabel("azimuth in $^\circ$")
+plt.ylabel("AoLP in $^\circ$")
+plt.title("AoLP v/s Azimuth")
+plt.savefig("azi_aolp "+date+ " .png", dpi=300, bbox_inches="tight")
+
+"""
+elevation data
+"""
+plt.figure(5)
+counts.plot.barh(color = "green") # histogram of counts of different elevation values
+plt.title("overall elevation data")
+plt.ylabel("elevation in $^\circ$")
+plt.xlabel("count")
+plt.tick_params(axis="y", labelsize=5)
+plt.tight_layout()
+plt.savefig("elevation_dat "+date+ " .png", dpi=300, bbox_inches="tight")
+
+
+
+
+
+
